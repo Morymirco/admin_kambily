@@ -210,17 +210,63 @@ export default function AddProduct() {
         },
       };
       const promise = fetch(url, meta)
-      promise.then(response => response.json() ) // pour ne pas bloquer l'interface user
-          .then(data => {
-            console.log(data);
-            setLoading(false)
-          })
-          .catch(error => {
-            setError(error.message);
-            setLoading(false)
-            console.log(error.message);
-          });
-    }catch (e) {
+      promise.then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur lors de la création du produit');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log(data);
+        toast.custom((t) => (
+          <div className={`${
+            t.visible ? 'animate-enter' : 'animate-leave'
+          } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-10 w-10 rounded-full bg-[#048B9A] flex items-center justify-center">
+                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    Produit créé avec succès !
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Le produit "{formData.name}" a été ajouté à votre catalogue.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex border-l border-gray-200">
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#048B9A] hover:text-[#037483] focus:outline-none"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        ), {
+          duration: 5000,
+        });
+        
+        // Redirection vers la liste des produits après 2 secondes
+        setTimeout(() => {
+          router.push('/admin/products');
+        }, 2000);
+        
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error(error);
+        toast.error(`Erreur : ${error.message}`);
+        setLoading(false);
+      });
+    } catch (e) {
       setError(error.message);
       setLoading(false)
     }
