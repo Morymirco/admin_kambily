@@ -1,7 +1,7 @@
 'use client'
 import {useEffect, useState} from 'react';
 import {FaAd, FaBell, FaEdit, FaGift, FaTrash} from 'react-icons/fa';
-import {HOST_IP, PORT, PROTOCOL_HTTP} from "../../constants";
+import {HOST_IP, PORT, PROTOCOL_HTTP} from "../../../constants";
 import toast, {Toaster} from "react-hot-toast";
 
 const MarketingPage = () => {

@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaArrowLeft, FaComment, FaEdit, FaEye, FaImages, FaStar, FaTrash } from 'react-icons/fa';
-import {HOST_IP, PORT, PROTOCOL_HTTP, formatNumber} from "../../../constants";
+import {HOST_IP, PORT, PROTOCOL_HTTP, formatNumber} from "./../../../../constants";
 
 export default function ProductDetailAdmin() {
   const params = useParams();

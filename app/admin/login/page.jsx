@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FaLock } from 'react-icons/fa';
-import {HOST_IP, PORT, PROTOCOL_HTTP} from "../../constants";
+import {HOST_IP, PORT, PROTOCOL_HTTP} from "../../../constants";
 
 
 const AdminLogin = () => {

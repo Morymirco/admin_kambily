@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { FaPlus, FaTrash } from "react-icons/fa";
-import { generateSKU } from './../../../constants';
+import { generateSKU } from './../../../../constants';
 
 export default function AddProduct() {
   const [formData, setFormData] = useState({
