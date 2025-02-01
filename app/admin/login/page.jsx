@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { FaLock } from 'react-icons/fa';
 import {HOST_IP, PORT, PROTOCOL_HTTP} from "../../../constants";
+import axios from "axios";
 
 
 const AdminLogin = () => {
@@ -23,42 +24,36 @@ const AdminLogin = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    // setError('');
-    // setIsLoading(true);
-
-    try {
-      console.log(data)
-      const formData = new FormData()
-      formData.append('email', data.email)
-      formData.append('password', data.password)
-
-      const url = `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/login/`
-      const meta = {
-        method : 'POST',
-        body: formData,
-      }
-
-      fetch(url, meta)
-      .then(response => response.json())
-      .then(data => {
-        console.log('Réponse du serveur:', data);
-        localStorage.setItem('refresh', )
-      })
-      .catch(error => {
-        console.error('Erreur lors de la requête:', error);
-      });
-      // Simuler une connexion
-      // await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Rediriger vers le dashboard
-      // router.push('/admin');
-    } catch (err) {
-      setError('Identifiants incorrects');
-    } finally {
-      setIsLoading(false);
-    }
+    setError('');
+    setIsLoading(true);
+    
+    const formData = new FormData()
+    formData.append('email', data.email)
+    formData.append('password', data.password)
+    
+    const url = `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/login/`
+    
+    axios.post(url, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+    })
+        .then(response => {
+          localStorage.setItem("access_token", response.data.access)
+          localStorage.setItem("refresh_token", response.data.refresh)
+          localStorage.setItem("user", response.data.user)
+          
+          router.push('/admin/products')
+        })
+        .catch(error => {
+          console.log(error)
+          setError(error.message)
+        })
+        .finally(()=>{
+          setIsLoading(false)
+        })
   };
 
   return (

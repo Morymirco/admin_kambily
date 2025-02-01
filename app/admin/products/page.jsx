@@ -257,39 +257,8 @@ const ProductsPage = () => {
         }
 
         const data = await response.json();
-        console.log('Données reçues:', data);
-        
-        const transformedProducts = data.products.map(product => ({
-          id: product.id,
-          image: product.images?.[0]?.image || '/placeholder.png',
-          name: product.name,
-          category: product.categories?.[0]?.name || 'Non catégorisé',
-          price: parseFloat(product.regular_price) || 0,
-          stock: parseInt(product.quantity) || 0,
-          status: product.stock_status ? 'active' : 'inactive',
-          tags: [
-            ...(product.promo_price ? ['Promo'] : []),
-            ...product.etiquettes?.map(tag => tag.name) || [],
-            product.etat_stock === 'Nouveau' ? 'Nouveau' : []
-          ],
-          date: new Date().toISOString(),
-          short_description: product.short_description,
-          long_description: product.long_description,
-          promo_price: product.promo_price,
-          sku: product.sku,
-          dimensions: {
-            weight: product.weight,
-            length: product.length,
-            width: product.width,
-            height: product.height
-          },
-          product_type: product.product_type,
-          colors: product.colors || [],
-          sizes: product.sizes || [],
-          gallery: product.images?.map(img => img.image) || []
-        }));
-
-        setProducts(transformedProducts);
+        console.log('Données reçues:', data.products);
+        setProducts(data.products);
       } catch (err) {
         console.error('Erreur:', err);
         setError(err.message);
