@@ -2,9 +2,8 @@
 import Image from "next/image";
 import {useParams, useRouter} from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
 import { FaPlus, FaTrash } from "react-icons/fa";
-import {getAxiosConfig, HOST_IP, PORT, PRODUCT_TYPE, PROTOCOL_HTTP, STOCK_STATUS} from "../../../../../constants";
+import {getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from "../../../../../constants";
 import axios from "axios";
 
 export default function EditProductPage() {
@@ -43,21 +42,19 @@ export default function EditProductPage() {
   const [availableColors, setAvailableColors] = useState([]);
   const [availableSizes, setAvailableSizes] = useState([]);
   
-  const [token, setToken] = useState(localStorage.getItem ('access_token'));
-  
   const ref = useRef(null)
   
   
   // Modifier useEffect pour enlever l'appel à websocketManagement
   useEffect(() => {
-    console.log ("Token : ", token )
-    if (!token) {
+    console.log ("Token : ", localStorage.getItem ('access_token') )
+    if (!localStorage.getItem ('access_token')) {
       router.push('/admin/login');
       return;
     }
     
     //Charger les donnees du produits
-    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${params.id}/`, getAxiosConfig(token) )
+    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${params.id}/`, getAxiosConfig(localStorage.getItem('access_token')) )
         .then(result => {
           console.log(result.data)
           setFormData(result.data)
@@ -78,7 +75,7 @@ export default function EditProductPage() {
         })
     
     //Charger les données lors de l'initialisation de la page
-    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/attributes/of/`, getAxiosConfig(token) )
+    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/attributes/of/`, getAxiosConfig(localStorage.getItem('access_token')) )
         .then(result => {
           if( result.status === 200 || result.status === 201 ) {
             console.log (result.data)
@@ -138,7 +135,7 @@ export default function EditProductPage() {
     
     console.log(formData)
     
-    axios.post(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/create/`, formData, getAxiosConfig(token, 'multipart/form-data') )
+    axios.post(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/create/`, formData, getAxiosConfig(localStorage.getItem('access_token'), 'multipart/form-data') )
         .then(result => {
           console.log (result)
           router.push('/admin/products');
@@ -150,106 +147,6 @@ export default function EditProductPage() {
           setLoading(false)
           setError(null)
         })
-    
-    // try {
-    //   const data = new FormData();
-    //   data.append('name', formData.name);
-    //   data.append('short_description', formData.short_description);
-    //   data.append('long_description', formData.long_description);
-    //   data.append('regular_price', formData.regular_price);
-    //   data.append('promo_price', formData.promo_price);
-    //   data.append('sku', formData.sku);
-    //   data.append('stock_status', formData.stock_status);
-    //   data.append('weight', formData.weight);
-    //   data.append('length', formData.length);
-    //   data.append('width', formData.width);
-    //   data.append('height', formData.height);
-    //   data.append('product_type', formData.product_type);
-    //   data.append('etat_stock', formData.etat_stock);
-    //   data.append('quantity', formData.quantity);
-    //   data.append('categories', `[${formData.categories}]`);
-    //   data.append('sizes', `[${formData.sizes}]`);
-    //   data.append('etiquettes', `[${formData.etiquettes}]`);
-    //   data.append('colors', `[${formData.colors}]`)
-    //
-    //   // Si vous avez plusieurs fichiers, parcourez-les et ajoutez-les
-    //   Array.from(ref.current.files).forEach((file, index) => {
-    //     data.append(`images`, file);
-    //   });
-    //
-    //   console.log(data)
-    //   const token = localStorage.getItem ('access_token');
-    //
-    //
-    //   const url = 'https://api.kambily.store/products/create/';
-    //   const meta = {
-    //     method: 'POST',
-    //     body: data,
-    //     headers : {
-    //       'Authorization' : `Bearer ${token}`,
-    //     },
-    //   };
-    //   const promise = fetch(url, meta)
-    //   promise.then(response => {
-    //     if (!response.ok) {
-    //       throw new Error('Erreur lors de la création du produit');
-    //     }
-    //     return response.json();
-    //   })
-    //   .then(data => {
-    //     console.log(data);
-    //     toast.custom((t) => (
-    //       <div className={`${
-    //         t.visible ? 'animate-enter' : 'animate-leave'
-    //       } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
-    //         <div className="flex-1 w-0 p-4">
-    //           <div className="flex items-start">
-    //             <div className="flex-shrink-0 pt-0.5">
-    //               <div className="h-10 w-10 rounded-full bg-[#048B9A] flex items-center justify-center">
-    //                 <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    //                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-    //                 </svg>
-    //               </div>
-    //             </div>
-    //             <div className="ml-3 flex-1">
-    //               <p className="text-sm font-medium text-gray-900">
-    //                 Produit créé avec succès !
-    //               </p>
-    //               <p className="mt-1 text-sm text-gray-500">
-    //                 Le produit "{formData.name}" a été ajouté à votre catalogue.
-    //               </p>
-    //             </div>
-    //           </div>
-    //         </div>
-    //         <div className="flex border-l border-gray-200">
-    //           <button
-    //             onClick={() => toast.dismiss(t.id)}
-    //             className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#048B9A] hover:text-[#037483] focus:outline-none"
-    //           >
-    //             Fermer
-    //           </button>
-    //         </div>
-    //       </div>
-    //     ), {
-    //       duration: 5000,
-    //     });
-    //
-    //     // Redirection vers la liste des produits après 2 secondes
-    //     setTimeout(() => {
-    //       router.push('/admin/products');
-    //     }, 2000);
-    //
-    //     setLoading(false);
-    //   })
-    //   .catch(error => {
-    //     console.error(error);
-    //     toast.error(`Erreur : ${error.message}`);
-    //     setLoading(false);
-    //   });
-    // } catch (e) {
-    //   setError(error.message);
-    //   setLoading(false)
-    // }
   }
   
   return (
