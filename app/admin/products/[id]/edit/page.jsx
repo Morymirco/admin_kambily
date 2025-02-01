@@ -1,646 +1,666 @@
-'use client'
-import Image from 'next/image';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import toast from 'react-hot-toast';
-import { FaArrowLeft, FaSave } from 'react-icons/fa';
-import { HOST_IP, PORT, PRODUCT_TYPE, PROTOCOL_HTTP, STOCK_STATUS } from "../../../../constants";
+"use client";
+import Image from "next/image";
+import {useParams, useRouter} from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { FaPlus, FaTrash } from "react-icons/fa";
+import {getAxiosConfig, HOST_IP, PORT, PRODUCT_TYPE, PROTOCOL_HTTP, STOCK_STATUS} from "../../../../../constants";
+import axios from "axios";
 
-export default function EditProduct() {
+export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [product, setProduct] = useState({
-    name: 'N/A',
-    short_description: 'N/A',
-    long_description: 'N/A',
-    regular_price: 0,
-    promo_price: 0,
-    sku: 'N/A',
-    stock_status: false,
-    weight: 0,
-    length: 0,
-    width: 0,
-    height: 0,
-    product_type: 'N/A',
-    etat_stock: 'N/A',
-    quantity: 0,
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    short_description: '',
+    long_description: '',
+    regular_price: 1,
+    promo_price: 1,
+    sku: '',
+    stock_status: true,
+    weight: 1,
+    length: 1,
+    width: 1,
+    height: 1,
+    product_type: 'variable',
+    etat_stock: 'En Stock',
+    quantity: 1,
     categories: [],
     colors: [],
     sizes: [],
     etiquettes: [],
-    images: [],
-    reviews : []
+    images: []
   });
-  const [formData, setFormData] = useState(product)
   
-  // États pour les listes de sélection
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagesPreviews, setImagesPreviews] = useState([]);
+  
+  const [availableTags, setAvailableTags] = useState([]);
   const [availableCategories, setAvailableCategories] = useState([]);
   const [availableColors, setAvailableColors] = useState([]);
   const [availableSizes, setAvailableSizes] = useState([]);
-  const [availableTags, setAvailableTags] = useState([]);
-
-  const fileInputRef = useRef(null);
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [previewImages, setPreviewImages] = useState([]);
-
-  // Charger les données du produit à modifier au chargement
+  
+  const [token, setToken] = useState(localStorage.getItem ('access_token'));
+  
+  const ref = useRef(null)
+  
+  
+  // Modifier useEffect pour enlever l'appel à websocketManagement
   useEffect(() => {
-    const fetchProduct = () => {
-      try {
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-          router.push('/login');
-          return;
-        }
-
-        fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${params.id}/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+    console.log ("Token : ", token )
+    if (!token) {
+      router.push('/admin/login');
+      return;
+    }
+    
+    //Charger les donnees du produits
+    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${params.id}/`, getAxiosConfig(token) )
+        .then(result => {
+          console.log(result.data)
+          setFormData(result.data)
+          setFormData({
+            ...result.data,
+            categories: result.data.categories.map(category => category.id),
+            sizes: result.data.sizes.map(size => size.id),
+            colors: result.data.colors.map(color => color.id),
+            etiquettes: result.data.etiquettes.map(etiquette => etiquette.id),
+          })
+          console.log (result.data)
+        })
+        .catch(error => {
+          console.log(error)
+        })
+        .finally(()=>{
+          console.log('fin')
+        })
+    
+    //Charger les données lors de l'initialisation de la page
+    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/attributes/of/`, getAxiosConfig(token) )
+        .then(result => {
+          if( result.status === 200 || result.status === 201 ) {
+            console.log (result.data)
+            setAvailableCategories(result.data.categories)
+            setAvailableColors(result.data.colors)
+            setAvailableSizes(result.data.sizes)
+            setAvailableTags(result.data.tags)
+          }
+          else{
+            console.log(result.data)
           }
         })
-            .then(response => response.json())
-            .then(data => {
-              setProduct(data);
-              setFormData(data);
-            })
-            .catch(err => {
-              console.error('Erreur lors du chargement du produit:', err);
-              toast.error('Erreur lors du chargement du produit');
-            })
-            .finally(() => {
-              setLoading(false);
-            })
-      } catch (err) {
-        setError(err.message);
-        toast.error(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [params.id, router]);
-
-  // Charger les données de référence au chargement
-  useEffect(() => {
-    const fetchReferenceData = () => {
-      try {
-        const token = localStorage.getItem('access_token');
-        
-        // Charger les catégories
-        const categoriesResponse = fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/attributes/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+        .catch(error => {
+          console.log(error)
         })
-            .then(response => response.json())
-            .then(data => {
-              setAvailableCategories(data.categories);
-              setAvailableSizes(data.sizes);
-              setAvailableColors(data.colors);
-              setAvailableTags(data.tags);
-            }).catch(err => {
-              setError(err.message);
-              console.log(err)
-            })
-            .finally(() => {
-              setLoading(false);
-            })
-      } catch (err) {
-        console.error('Erreur lors du chargement des données de référence:', err);
-        toast.error('Erreur lors du chargement des attributs');
-      }
-    };
-
-    fetchReferenceData();
-  }, []);
-
-  // Fonction pour gérer le changement d'images
+        .finally(()=>{
+          console.log('fin')
+        })
+  }, [router, params.id]);
+  
+  
+  // Gérer l'ajout d'images
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setSelectedImages(files);
-
-    // Créer les URLs de prévisualisation
-    const previews = files.map(file => URL.createObjectURL(file));
-    setPreviewImages(prev => {
-      // Nettoyer les anciennes URLs
-      prev.forEach(url => URL.revokeObjectURL(url));
-      return previews;
-    });
+    setFormData({...formData, images: files});
+    
+    // Créer les previews
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagesPreviews(prev => [...prev, ...newPreviews]);
+    
+    // Stocker les fichiers
+    setImageFiles(prev => [...prev, ...files]);
   };
-
-  // Nettoyer les URLs à la destruction du composant
-  useEffect(() => {
-    return () => {
-      previewImages.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, []);
-
+  
+  // Supprimer une image
+  const handleRemoveImage = (index) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagesPreviews(prev => prev.filter((_, i) => i !== index));
+    setFormData({...formData, images: Array.from(ref.current.files)});
+  };
+  
+  // Soumettre le formulaire
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
+    setLoading(true);
+    setError(null);
     
-    const data = new FormData();
-    data.append('name', formData.name);
-    data.append('short_description', formData.short_description);
-    data.append('long_description', formData.long_description);
-    data.append('regular_price', formData.regular_price);
-    data.append('promo_price', formData.promo_price);
-    data.append('sku', formData.sku);
-    data.append('stock_status', formData.stock_status);
-    data.append('weight', formData.weight);
-    data.append('length', formData.length);
-    data.append('width', formData.width);
-    data.append('height', formData.height);
-    data.append('product_type', formData.product_type);
-    data.append('etat_stock', formData.etat_stock);
-    data.append('quantity', formData.quantity);
-    data.append('categories', `[${formData.categories}]`);
-    data.append('sizes', `[${formData.sizes}]`);
-    data.append('etiquettes', `[${formData.etiquettes}]`);
-    data.append('colors', `[${formData.colors}]`)
-    
-    // Ajout des images sélectionnées
-    selectedImages.forEach((file) => {
-      data.append('images', file);
-    });
-    
-    console.log(data)
-
-    try {
-        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/update/${params.id}/`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        },
-        body: data
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la mise à jour');
-      }
-
-      toast.success('Produit mis à jour avec succès');
-      router.push(`/admin/products/${params.id}`);
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSaving(false);
+    if (imageFiles.length === 0) {
+      setError ('Au moins une image est requise');
+      setLoading (false);
+      return;
     }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-16 h-16 border-4 border-[#048B9A] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    
+    imageFiles.forEach(file => {
+    })
+    
+    
+    console.log(formData)
+    
+    axios.post(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/create/`, formData, getAxiosConfig(token, 'multipart/form-data') )
+        .then(result => {
+          console.log (result)
+          router.push('/admin/products');
+        })
+        .catch(error => {
+          console.log(error)
+        })
+        .finally(()=>{
+          setLoading(false)
+          setError(null)
+        })
+    
+    // try {
+    //   const data = new FormData();
+    //   data.append('name', formData.name);
+    //   data.append('short_description', formData.short_description);
+    //   data.append('long_description', formData.long_description);
+    //   data.append('regular_price', formData.regular_price);
+    //   data.append('promo_price', formData.promo_price);
+    //   data.append('sku', formData.sku);
+    //   data.append('stock_status', formData.stock_status);
+    //   data.append('weight', formData.weight);
+    //   data.append('length', formData.length);
+    //   data.append('width', formData.width);
+    //   data.append('height', formData.height);
+    //   data.append('product_type', formData.product_type);
+    //   data.append('etat_stock', formData.etat_stock);
+    //   data.append('quantity', formData.quantity);
+    //   data.append('categories', `[${formData.categories}]`);
+    //   data.append('sizes', `[${formData.sizes}]`);
+    //   data.append('etiquettes', `[${formData.etiquettes}]`);
+    //   data.append('colors', `[${formData.colors}]`)
+    //
+    //   // Si vous avez plusieurs fichiers, parcourez-les et ajoutez-les
+    //   Array.from(ref.current.files).forEach((file, index) => {
+    //     data.append(`images`, file);
+    //   });
+    //
+    //   console.log(data)
+    //   const token = localStorage.getItem ('access_token');
+    //
+    //
+    //   const url = 'https://api.kambily.store/products/create/';
+    //   const meta = {
+    //     method: 'POST',
+    //     body: data,
+    //     headers : {
+    //       'Authorization' : `Bearer ${token}`,
+    //     },
+    //   };
+    //   const promise = fetch(url, meta)
+    //   promise.then(response => {
+    //     if (!response.ok) {
+    //       throw new Error('Erreur lors de la création du produit');
+    //     }
+    //     return response.json();
+    //   })
+    //   .then(data => {
+    //     console.log(data);
+    //     toast.custom((t) => (
+    //       <div className={`${
+    //         t.visible ? 'animate-enter' : 'animate-leave'
+    //       } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
+    //         <div className="flex-1 w-0 p-4">
+    //           <div className="flex items-start">
+    //             <div className="flex-shrink-0 pt-0.5">
+    //               <div className="h-10 w-10 rounded-full bg-[#048B9A] flex items-center justify-center">
+    //                 <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    //                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+    //                 </svg>
+    //               </div>
+    //             </div>
+    //             <div className="ml-3 flex-1">
+    //               <p className="text-sm font-medium text-gray-900">
+    //                 Produit créé avec succès !
+    //               </p>
+    //               <p className="mt-1 text-sm text-gray-500">
+    //                 Le produit "{formData.name}" a été ajouté à votre catalogue.
+    //               </p>
+    //             </div>
+    //           </div>
+    //         </div>
+    //         <div className="flex border-l border-gray-200">
+    //           <button
+    //             onClick={() => toast.dismiss(t.id)}
+    //             className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#048B9A] hover:text-[#037483] focus:outline-none"
+    //           >
+    //             Fermer
+    //           </button>
+    //         </div>
+    //       </div>
+    //     ), {
+    //       duration: 5000,
+    //     });
+    //
+    //     // Redirection vers la liste des produits après 2 secondes
+    //     setTimeout(() => {
+    //       router.push('/admin/products');
+    //     }, 2000);
+    //
+    //     setLoading(false);
+    //   })
+    //   .catch(error => {
+    //     console.error(error);
+    //     toast.error(`Erreur : ${error.message}`);
+    //     setLoading(false);
+    //   });
+    // } catch (e) {
+    //   setError(error.message);
+    //   setLoading(false)
+    // }
   }
-
+  
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-gray-100 rounded-lg"
-          >
-            <FaArrowLeft className="text-gray-500" />
-          </button>
-          <h1 className="text-xl font-bold">Modifier le produit</h1>
-        </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Informations de base */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Informations de base</h2>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nom du produit
-              </label>
-              <input
-                  type="text"
-                  value={product.name}
-                  onChange={(e) => setFormData ({...formData, name: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                SKU
-              </label>
-              <input
-                  type="text"
-                  value={formData.sku}
-                  onChange={(e) => setFormData ({...formData, sku: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-            
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description courte
-              </label>
-              <textarea
-                  value={formData.short_description}
-                  onChange={(e) => setFormData ({...formData, short_description: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  rows={3}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Type de produit</label>
-              <select
-                  value={formData.product_type}
-                  onChange={(e) => setFormData ({...formData, product_type: e.target.value})}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
-              >
-                {
-                  PRODUCT_TYPE.map(type => (
-                      <option
-                          key={type} // Ajoute un key pour chaque option
-                          value={type}
-                      >
-                        {type}
-                      </option>
-                  ))
-                  
-                }
-              </select>
-            </div>
-            
-            <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description longue
-              </label>
-              <textarea
-                  value={formData.long_description}
-                  onChange={(e) => setFormData ({...formData, long_description: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  rows={5}
-              />
-            </div>
-          </div>
-        </div>
-        
-        {/* Prix et stock */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Prix et stock</h2>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prix régulier
-              </label>
-              <input
-                  type="number"
-                  value={formData.regular_price}
-                  onChange={(e) => setFormData ({...formData, regular_price: e.target.value})}
-                  className="w-full px-3 py-2 border rounded-lg"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prix promo
-              </label>
-              <input
-                type="number"
-                value={formData.promo_price}
-                onChange={(e) => setFormData({...formData, promo_price: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantité
-              </label>
-              <input
-                type="number"
-                value={formData.quantity}
-                onChange={(e) => setFormData({...formData, quantity: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                État du stock
-              </label>
-              <select
-                value={formData.etat_stock}
-                onChange={(e) => setFormData({...formData, etat_stock: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg"
-              >
-                {
-                  STOCK_STATUS.map(status => (
-                      <option value={status}>{status}</option>
-                  ))
-                }
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Dimensions */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Dimensions</h2>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Poids (kg)
-              </label>
-              <input
-                type="number"
-                value={formData.weight}
-                onChange={(e) => setFormData({...formData, weight: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Longueur (cm)
-              </label>
-              <input
-                type="number"
-                value={formData.length}
-                onChange={(e) => setFormData({...formData, length: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Largeur (cm)
-              </label>
-              <input
-                type="number"
-                value={formData.width}
-                onChange={(e) => setFormData({...formData, width: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hauteur (cm)
-              </label>
-              <input
-                type="number"
-                value={formData.height}
-                onChange={(e) => setFormData({...formData, height: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Attributs */}
-        {/* Catégories, Couleurs, Tailles et Tags */}
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-lg font-semibold mb-6">Attributs du produit</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Catégories */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-2 h-2 bg-[#048B9A] rounded-full"></span>
-                Catégories
-              </h3>
-              
-              <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                {availableCategories.length === 0 ? (
-                    <p className="text-sm text-gray-500 italic">Aucune catégorie principale disponible</p>
-                ) : (
-                    availableCategories.map (category => (
-                        <label key={category.id}
-                               className="flex items-center p-2 hover:bg-white rounded-md transition-colors">
-                          <input
-                              type="checkbox"
-                              checked={formData.categories.includes (category.id)}
-                              onChange={(e) => {
-                                const isChecked = e.target.checked;
-                                let updatedCategories;
-                                if (isChecked) {
-                                  updatedCategories = [...formData.categories, category.id];
-                                } else {
-                                  updatedCategories = formData.categories.filter ((id) => id !== category.id);
-                                }
-                                setFormData ({...formData, categories: updatedCategories});
-                              }}
-                              className="rounded border-gray-300 text-[#048B9A] focus:ring-[#048B9A]"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{category.name}</span>
-                        </label>
-                    ))
-                )}
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-2xl font-bold mb-8">Modifier un produit</h1>
+          <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
+            {/* Informations de base */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">Informations de base</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Nom du produit</label>
+                  <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData ({...formData, name: e.target.value})}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                      required
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Prix régulier</label>
+                    <input
+                        type="number"
+                        step={0.01}
+                        min={0}
+                        value={formData.regular_price}
+                        onChange={(e) => setFormData ({...formData, regular_price: parseFloat (e.target.value)})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                        required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Prix promotionnel</label>
+                    <input
+                        type="number"
+                        step={0.01}
+                        min={0}
+                        value={formData.promo_price}
+                        onChange={(e) => setFormData ({...formData, promo_price: parseFloat (e.target.value)})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description courte</label>
+                  <textarea
+                      value={formData.short_description}
+                      onChange={(e) => setFormData ({...formData, short_description: e.target.value})}
+                      rows={2}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description longue</label>
+                  <textarea
+                      value={formData.long_description}
+                      onChange={(e) => setFormData ({...formData, long_description: e.target.value})}
+                      rows={4}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="flex items-center">
+                    <input
+                        type="checkbox"
+                        checked={formData.stock_status}
+                        onChange={(e) => setFormData ({...formData, stock_status: e.target.checked})}
+                        className="rounded border-gray-300 text-[#048B9A] focus:ring-[#048B9A]"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">En stock</span>
+                  </label>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Type de produit</label>
+                  <select
+                      value={formData.product_type}
+                      onChange={(e) => setFormData ({...formData, product_type: e.target.value})}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                  >
+                    <option value="simple">simple</option>
+                    <option value="variable">variable</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">État du stock</label>
+                  <select
+                      value={formData.etat_stock}
+                      onChange={(e) => setFormData ({...formData, etat_stock: e.target.value})}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                  >
+                    <option value="En Stock">En stock</option>
+                    <option value="Rupture de stock">Rupture de stock</option>
+                    <option value="Sur commande">Sur commande</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">SKU (Code produit unique)</label>
+                  <input
+                      type="text"
+                      value={formData.sku}
+                      onChange={(e) => setFormData ({...formData, sku: e.target.value})}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                      required
+                      placeholder="Ex: PROD-001"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Poids (kg)</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.weight}
+                        onChange={(e) => setFormData ({...formData, weight: parseFloat (e.target.value)})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                        required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Longueur (cm)</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.length}
+                        onChange={(e) => setFormData ({...formData, length: parseFloat (e.target.value)})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                        required
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Largeur (cm)</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        value={formData.width}
+                        onChange={(e) => setFormData ({...formData, width: parseFloat (e.target.value)})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                        required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Hauteur (cm)</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        value={formData.height}
+                        onChange={(e) => setFormData ({...formData, height: parseFloat (e.target.value)})}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                        required
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Quantité en stock</label>
+                  <input
+                      type="number"
+                      min="0"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData ({...formData, quantity: parseInt (e.target.value, 10)})}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
+                      required
+                  />
+                </div>
               </div>
             </div>
             
-            {/* Couleurs - Visible uniquement si le type est "variable" */}
-            {formData.product_type === PRODUCT_TYPE[1] && (
+            {/* Catégories, Couleurs, Tailles et Tags */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h2 className="text-lg font-semibold mb-6">Attributs du produit</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Catégories */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                     <span className="w-2 h-2 bg-[#048B9A] rounded-full"></span>
-                    Couleurs
+                    Catégories principales
                   </h3>
+                  
                   <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                    {availableColors.map(color => (
-                        <label key={color.id} className="flex items-center p-2 hover:bg-white rounded-md transition-colors">
-                          <input
-                              type="checkbox"
-                              checked={formData.colors.includes(color.id)}
-                              onChange={(e) => {
-                                const isChecked = e.target.checked
-                                let updatedColors = [];
-                                if (isChecked) {
-                                  updatedColors = [...formData.colors, color.id];
-                                } else {
-                                  updatedColors = formData.colors.filter ((id) => id !== color.id);
-                                }
-                                setFormData ({...formData, colors: updatedColors});
-                              }}
-                              className="rounded border-gray-300 text-[#048B9A] focus:ring-[#048B9A]"
-                          />
-                          <span className="ml-2 text-sm text-gray-700 flex items-center gap-2">
+                    {availableCategories.length === 0 ? (
+                        <p className="text-sm text-gray-500 italic">Aucune catégorie principale disponible</p>
+                    ) : (
+                        availableCategories.map (category => (
+                            <label key={category.id}
+                                   className="flex items-center p-2 hover:bg-white rounded-md transition-colors">
+                              <input
+                                  type="checkbox"
+                                  checked={formData.categories.includes (category.id)}
+                                  onChange={(e) => {
+                                    const isChecked = e.target.checked;
+                                    let updatedCategories;
+                                    if (isChecked) {
+                                      updatedCategories = [...formData.categories, category.id];
+                                    } else {
+                                      updatedCategories = formData.categories.filter ((id) => id !== category.id);
+                                    }
+                                    setFormData ({...formData, categories: updatedCategories});
+                                  }}
+                                  className="rounded border-gray-300 text-[#048B9A] focus:ring-[#048B9A]"
+                              />
+                              <span className="ml-2 text-sm text-gray-700">{category.name}</span>
+                            </label>
+                        ))
+                    )}
+                  </div>
+                </div>
+                
+                {/* Couleurs - Visible uniquement si le type est "variable" */}
+                {formData.product_type === 'variable' && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-[#048B9A] rounded-full"></span>
+                        Couleurs
+                      </h3>
+                      <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                        {availableColors.map(color => (
+                            <label key={color.id} className="flex items-center p-2 hover:bg-white rounded-md transition-colors">
+                              <input
+                                  type="checkbox"
+                                  checked={formData.colors.includes(color.id)}
+                                  onChange={(e) => {
+                                    const isChecked = e.target.checked
+                                    let updatedColors = [];
+                                    if (isChecked) {
+                                      updatedColors = [...formData.colors, color.id];
+                                    } else {
+                                      updatedColors = formData.colors.filter ((id) => id !== color.id);
+                                    }
+                                    setFormData ({...formData, colors: updatedColors});
+                                  }}
+                                  className="rounded border-gray-300 text-[#048B9A] focus:ring-[#048B9A]"
+                              />
+                              <span className="ml-2 text-sm text-gray-700 flex items-center gap-2">
                           {color.hex_code && (
                               <span
                                   className="w-4 h-4 rounded-full border border-gray-200"
                                   style={{ backgroundColor: color.hex_code }}
                               ></span>
                           )}
-                            {color.name}
+                                {color.name}
                         </span>
-                        </label>
-                    ))}
-                  </div>
-                </div>
-            )}
-            
-            {/* Tailles - Visible uniquement si le type est "variable" */}
-            {formData.product_type === PRODUCT_TYPE[0] && (
+                            </label>
+                        ))}
+                      </div>
+                    </div>
+                )}
+                
+                {/* Tailles - Visible uniquement si le type est "variable" */}
+                {formData.product_type === 'variable' && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-[#048B9A] rounded-full"></span>
+                        Tailles
+                      </h3>
+                      <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                        {availableSizes.map(size => (
+                            <label
+                                key={size.id}
+                                className={`
+                          flex items-center justify-center p-2 rounded-md cursor-pointer transition-all
+                          ${formData.sizes.includes(size.id)
+                                    ? 'bg-[#048B9A] text-white'
+                                    : 'bg-white text-gray-700 hover:bg-gray-100'}
+                        `}
+                            >
+                              <input
+                                  type="checkbox"
+                                  checked={formData.sizes.includes (size.id)}
+                                  onChange={(e) => {
+                                    const isChecked = e.target.checked;
+                                    let updatedSizes;
+                                    if (isChecked) {
+                                      updatedSizes = [...formData.sizes, size.id];
+                                    } else {
+                                      updatedSizes = formData.sizes.filter ((id) => id !== size.id);
+                                    }
+                                    setFormData ({...formData, sizes: updatedSizes});
+                                  }}
+                                  className="sr-only"
+                              />
+                              <span className="text-sm font-medium">{size.name}</span>
+                            </label>
+                        ))}
+                      </div>
+                    </div>
+                )}
+                
+                {/* Tags */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                     <span className="w-2 h-2 bg-[#048B9A] rounded-full"></span>
-                    Tailles
+                    Étiquettes
                   </h3>
                   <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                    {availableSizes.map(size => (
+                    {availableTags.map(tag => (
                         <label
-                            key={size.id}
+                            key={tag.id}
                             className={`
-                          flex items-center justify-center p-2 rounded-md cursor-pointer transition-all
-                          ${formData.sizes.includes(size.id)
-                                ? 'bg-[#048B9A] text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'}
-                        `}
+                        flex items-center p-2 hover:bg-white rounded-md transition-colors
+                        ${formData.etiquettes.includes(tag.id) ? 'bg-white' : ''}
+                      `}
                         >
                           <input
                               type="checkbox"
-                              checked={formData.sizes.includes (size.id)}
+                              checked={formData.etiquettes.includes(tag.id)}
                               onChange={(e) => {
                                 const isChecked = e.target.checked;
-                                let updatedSizes;
+                                let updateEtiquettes;
                                 if (isChecked) {
-                                  updatedSizes = [...formData.sizes, size.id];
+                                  updateEtiquettes = [...formData.etiquettes, tag.id];
                                 } else {
-                                  updatedSizes = formData.sizes.filter ((id) => id !== size.id);
+                                  updateEtiquettes = formData.etiquettes.filter ((id) => id !== tag.id);
                                 }
-                                setFormData ({...formData, sizes: updatedSizes});
+                                setFormData ({...formData, etiquettes: updateEtiquettes});
                               }}
-                              className="sr-only"
+                              className="rounded border-gray-300 text-[#048B9A] focus:ring-[#048B9A]"
                           />
-                          <span className="text-sm font-medium">{size.name}</span>
+                          <div className="ml-2">
+                            <span className="text-sm text-gray-700">{tag.name}</span>
+                            {tag.description && (
+                                <p className="text-xs text-gray-500 mt-0.5">{tag.description}</p>
+                            )}
+                          </div>
                         </label>
                     ))}
                   </div>
                 </div>
-            )}
-            
-            {/* Tags */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-2 h-2 bg-[#048B9A] rounded-full"></span>
-                Étiquettes
-              </h3>
-              <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                {availableTags.map(tag => (
-                    <label
-                        key={tag.id}
-                        className={`
-                        flex items-center p-2 hover:bg-white rounded-md transition-colors
-                        ${formData.etiquettes.includes(tag.id) ? 'bg-white' : ''}
-                      `}
-                    >
-                      <input
-                          type="checkbox"
-                          checked={formData.etiquettes.includes(tag.id)}
-                          onChange={(e) => {
-                            const isChecked = e.target.checked;
-                            let updateEtiquettes;
-                            if (isChecked) {
-                              updateEtiquettes = [...formData.etiquettes, tag.id];
-                            } else {
-                              updateEtiquettes = formData.etiquettes.filter ((id) => id !== tag.id);
-                            }
-                            setFormData ({...formData, etiquettes: updateEtiquettes});
-                          }}
-                          className="rounded border-gray-300 text-[#048B9A] focus:ring-[#048B9A]"
-                      />
-                      <div className="ml-2">
-                        <span className="text-sm text-gray-700">{tag.name}</span>
-                        {tag.description && (
-                            <p className="text-xs text-gray-500 mt-0.5">{tag.description}</p>
-                        )}
-                      </div>
-                    </label>
-                ))}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Section images */}
-        <div className="space-y-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Images du produit
-          </label>
-          
-          {/* Input file */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            multiple
-            accept="image/*"
-            onChange={handleImageChange}
-            className="mt-1 block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-[#048B9A] file:text-white
-              hover:file:bg-[#037483]"
-          />
-
-          {/* Prévisualisation des images */}
-          {previewImages.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-              {previewImages.map((url, index) => (
-                <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-                  <Image
-                    src={url}
-                    alt={`Preview ${index + 1}`}
-                    fill
-                    className="object-cover"
+            
+            {/* Images */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">Images du produit</h2>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                {imagesPreviews.map((preview, index) => (
+                    <div key={index} className="relative aspect-square">
+                      <Image
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          fill
+                          className="object-cover rounded-lg"
+                      />
+                      <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                      >
+                        <FaTrash size={12} />
+                      </button>
+                    </div>
+                ))}
+                
+                <label className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg hover:border-[#048B9A] transition-colors cursor-pointer">
+                  <input
+                      type="file"
+                      multiple
+                      accept="image/png, image/jpeg"
+                      onChange={handleImageChange}
+                      className="hidden"
+                      ref={ref}
                   />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPreviewImages(prev => prev.filter((_, i) => i !== index));
-                      setSelectedImages(prev => prev.filter((_, i) => i !== index));
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <FaPlus className="w-8 h-8 text-gray-400" />
+                    <span className="mt-2 text-sm text-gray-500">Ajouter des images</span>
+                  </div>
+                </label>
+              </div>
             </div>
-          )}
+            
+            {error && (
+                <div className="bg-red-50 text-red-500 p-4 rounded-lg">
+                  {error}
+                </div>
+            )}
+            
+            <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#048B9A] text-white py-3 rounded-lg hover:bg-[#037483] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Création en cours...
+                  </div>
+              ) : (
+                  'Modifier le produit'
+              )}
+            </button>
+          </form>
         </div>
-
-        {/* Boutons d'action */}
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-4 py-2 border rounded-lg"
-          >
-            Annuler
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-4 py-2 bg-[#048B9A] text-white rounded-lg flex items-center gap-2"
-          >
-            <FaSave />
-            {saving ? 'Enregistrement...' : 'Enregistrer'}
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
   );
-} 
+}

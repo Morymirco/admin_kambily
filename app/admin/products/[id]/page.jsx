@@ -1,71 +1,70 @@
-"use client"
+'use client'
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { HOST_IP, PORT, PROTOCOL_HTTP, formatNumber } from "../../../../constants";
-import axios from "axios";
-import { FaArrowLeft, FaComment, FaEdit, FaImage, FaStar, FaTrash } from 'react-icons/fa';
-import Link from "next/link";
-import DeleteConfirmationModal from "../../../Components/Admin/DeleteConfirmationModal";
+import { FaArrowLeft, FaComment, FaEdit, FaEye, FaImages, FaTrash } from 'react-icons/fa';
+import axios from 'axios';
+import Link from 'next/link';
+import Image from 'next/image';
+import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from "../../../../constants";
+import { useLogin } from "../../../context/LoginContext";
+import DeleteConfirmationModal from '@/app/Components/Admin/DeleteConfirmationModal';
 
 export default function ProductDetailAdmin() {
   const params = useParams();
   const router = useRouter();
   
+  const { token } = useLogin();
+  
   const [product, setProduct] = useState({
-    name: 'N/A',
-    short_description: 'N/A',
-    long_description: 'N/A',
+    name: '',
+    short_description: '',
+    long_description: '',
     regular_price: 0,
     promo_price: 0,
-    sku: 'N/A',
-    stock_status: false,
+    sku: '',
+    stock_status: true,
     weight: 0,
     length: 0,
     width: 0,
     height: 0,
-    product_type: 'N/A',
-    etat_stock: 'N/A',
+    product_type: 'variable',
+    etat_stock: 'En Stock',
     quantity: 0,
     categories: [],
     colors: [],
     sizes: [],
     etiquettes: [],
     images: [],
-    reviews: []
+    reviews: [],
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   
+  const [error, setError] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [loadingReviews, setLoadingReviews] = useState(true);
   
   useEffect(() => {
     const fetchProduct = () => {
-      
-      let token = localStorage.getItem('access_token');
-      
-    
-    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${params.id}/`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        router.push('/test/login');
+        return;
       }
-    })
-        .then(response => {
-          console.log(response.data);
-        })
-        .catch(error => {
-          console.log(error);
-        })
-        .finally(()=>{
-          setLoading(false);
-          setLoadingReviews(false);
-        })
+      
+      axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${params.id}/`, getAxiosConfig(token))
+          .then(response => {
+            if (response.status === 200 || response.status === 201) {
+              setProduct(response.data);
+            } else {
+              throw new Error('Erreur lors du chargement du produit');
+            }
+          })
+          .catch(err => {
+            console.error('Erreur:', err);
+            setError(err.message);
+          });
     };
     
     if (params.id) {
@@ -73,308 +72,220 @@ export default function ProductDetailAdmin() {
     }
   }, [params.id, router]);
   
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/delete/${params.id}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to delete product');
-      }
-      
-      toast.success('Product deleted successfully');
-      router.push('/admin/products');
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteModal(false);
-    }
+  const handleDelete = () => {
+    const isConfirmed = window.confirm('Confirmez-vous la suppression du produit ?');
+    
+    if (!isConfirmed) return;
+    axios.delete(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/delete/${params.id}/`, getAxiosConfig(token))
+        .then(res => {
+          if (res.status === 200 || res.status === 201) {
+            toast.success('Suppression');
+            router.push('/admin/products');
+          } else {
+            console.log(res.data);
+            toast.error(res.data.detail);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+        })
+        .finally(() => {
+          setIsDeleting(false);
+          setShowDeleteModal(false);
+        });
   };
+  
+  // const handleDelete = () => {
+  //   setIsDeleting(true);
+  //   axios.post(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/delete/${params.id}/`, {}, getAxiosConfig(token))
+  //       .then(res => {
+  //         if (res.status === 200 || res.status === 201) {
+  //           toast.success('Suppression');
+  //           router.push('/admin/products');
+  //         } else {
+  //           console.log(res.data);
+  //           toast.error(res.data.detail);
+  //         }
+  //       })
+  //       .catch(err => {
+  //         console.error(err);
+  //       })
+  //       .finally(() => {
+  //         setIsDeleting(false);
+  //         setShowDeleteModal(false);
+  //       });
+  // };
   
   return (
       <>
-        <div className="space-y-6">
-          {/* En-tête */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <button
-                  onClick={() => router.back()}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <FaArrowLeft className="text-gray-500" />
-              </button>
-              <h1 className="text-xl font-bold">Détails du produit</h1>
-            </div>
-            
-            <div className="flex gap-3">
-              {/*<Link */}
-              {/*  href={`/test/testafficheproduct/${params.id}`}*/}
-              {/*  target="_blank"*/}
-              {/*  className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50"*/}
-              {/*>*/}
-              {/*  <FaEye />*/}
-              {/*  <span>Voir</span>*/}
-              {/*</Link>*/}
-              <Link
-                  href={`/admin/products/${params.id}/edit`}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#048B9A] text-white rounded-lg hover:bg-[#037483]"
-              >
-                <FaEdit />
-                <span>Modifier</span>
-              </Link>
-              <button
-                  onClick={() => setShowDeleteModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                <FaTrash />
-                <span>Supprimer</span>
-              </button>
-            </div>
+        {/* Header Section */}
+        <div className="flex justify-between items-center space-y-6">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-lg">
+              <FaArrowLeft className="text-gray-500" />
+            </button>
+            <h1 className="text-xl font-bold">Détails du produit</h1>
           </div>
-          
-          {/* Contenu principal */}
-          <div className="grid grid-cols-3 gap-6">
-            {/* Colonne de gauche - Images */}
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <FaImage />
-                  Images
-                </h2>
-                <div className="aspect-square rounded-lg overflow-hidden mb-4">
-                  {
-                    product.images.length > 0 ? (
-                            <img
-                                src={product.images[selectedImageIndex].image}
-                                alt={product.name}
-                                width={500}
-                                height={500}
-                                className="w-full h-full object-cover"
-                            />
-                        ) :
-                        <img
-                            src= '/default.jpg'
-                            alt={product.name}
-                            width={500}
-                            height={500}
-                            className="w-full h-full object-cover"
-                        />
-                  }
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {product.images.map((image, index) => (
-                      <button
-                          key={index}
-                          onClick={() => setSelectedImageIndex(index)}
-                          className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${
-                              selectedImageIndex === index
-                                  ? 'border-[#048B9A]'
-                                  : 'border-transparent hover:border-gray-200'
-                          }`}
-                      >
-                        <Image
-                            src={image.image}
-                            alt={`${product.name} ${index + 1}`}
-                            width={100}
-                            height={100}
-                            className="w-full h-full object-cover"
-                        />
-                      </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            
-            {/* Colonne centrale - Informations principales */}
-            <div className="col-span-2 space-y-6">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nom du produit
-                    </label>
-                    <p className="text-lg font-semibold">{product.name}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Prix
-                    </label>
-                    <p className="text-lg font-semibold">{formatNumber (product.regular_price)}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Catégorie
-                    </label>
-                    <div className="flex gap-1">
-                      {
-                        product.categories.length > 0 ?
-                            (
-                                product.categories.map ((category, index) => (
-                                    <span
-                                        key={index}
-                                        className="px-2 py-1 bg-gray-100 rounded-full text-xs font-medium">
-                                    {category.name}</span>
-                                ))
-                            )
-                            :
-                            (
-                                <span
-                                    className="px-2 py-1 bg-gray-100 rounded-full text-xs font-medium">Aucune categorie</span>
-                            )
-                      }
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Stock
-                    </label>
-                    <p className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        product.stock_status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {product.etat_stock}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="font-medium mb-4">Description Courte</h3>
-                <p className="text-gray-600 whitespace-pre-wrap">{product.short_description}</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="font-medium mb-4">Description Courte</h3>
-                <p className="text-gray-600 whitespace-pre-wrap">{product.long_description}</p>
-              </div>
-              
-              {/* Caractéristiques */}
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h3 className="font-medium mb-4">Caractéristiques</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Vérifier si le produit a des couleurs et les afficher */}
-                  {product.colors?.length > 0 ? (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Couleur</label>
-                        {/* Affiche les couleurs séparées par des virgules */}
-                        <div className="flex gap-5">
-                          {
-                            product.colors.map ((color, index) => (
-                                <span className="shadow-sm inline-flex  items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                      key={index} style={{backgroundColor: color.hex_code}}
-                                > { color.name }
-                            </span>
-                            ))
-                          }
-                        </div>
-                      </div>
-                  ) : (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Couleur</label>
-                        <p>Aucune couleur disponible</p>
-                      </div>
-                  )}
-                  
-                  {/* Vérifier si le produit a des tailles et les afficher */}
-                  {product.sizes?.length > 0 ? (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Taille</label>
-                        <p>
-                          {
-                            product.sizes.map ((size, index) => (
-                                <span key={index}>{size.name}, </span>
-                            ))
-                          }
-                        </p> {/* Affiche les tailles séparées par des virgules */}
-                      </div>
-                  ) : (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Taille</label>
-                        <p>Aucune taille disponible</p>
-                      </div>
-                  )}
-                  
-                  {/* Vérifier si le produit a des étiquettes et les afficher */}
-                  {product.etiquettes?.length > 0 ? (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Étiquettes</label>
-                        <p>
-                          {
-                            product.etiquettes.map ((etiquette, index) => (
-                                <span key={index}>{etiquette.name}, </span>
-                            ))
-                          }
-                        </p> {/* Affiche les étiquettes séparées par des virgules */}
-                      </div>
-                  ) : (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Étiquettes</label>
-                        <p>Aucune étiquette disponible</p>
-                      </div>
-                  )}
-                </div>
-              </div>
-            
-            </div>
-          </div>
-          
-          {/* Section des avis */}
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <FaComment/>
-              Avis clients
-            </h2>
-            
-            {loadingReviews ? (
-                <div className="flex justify-center py-4">
-                  <div className="w-8 h-8 border-4 border-[#048B9A] border-t-transparent rounded-full animate-spin"/>
-                </div>
-            ) : reviews.length > 0 ? (
-                <div className="space-y-4">
-                  {reviews.map ((review) => (
-                      <div key={review.id} className="border-b pb-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center">
-                              {[...Array (5)].map ((_, i) => (
-                                  <FaStar
-                                      key={i}
-                                      className={i < review.rating ? 'text-yellow-400' : 'text-gray-300'}
-                                  />
-                              ))}
-                            </div>
-                            <span className="font-medium">{review.author}</span>
-                          </div>
-                          <span className="text-sm text-gray-500">
-                      {review.created_at}
-                    </span>
-                        </div>
-                        <p className="mt-2 text-gray-600">{review.comment}</p>
-                      </div>
-                  ))}
-                </div>
-            ) : (
-                <p className="text-center text-gray-500 py-4">
-                  Aucun avis pour ce produit
-                </p>
-            )}
+          <div className="flex gap-3">
+            <Link href={`/test/testafficheproduct/${params.id}`} target="_blank" className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50">
+              <FaEye />
+              <span>Voir</span>
+            </Link>
+            <Link href={`/admin/products/${params.id}/edit`} className="flex items-center gap-2 px-4 py-2 bg-[#048B9A] text-white rounded-lg hover:bg-[#037483]">
+              <FaEdit />
+              <span>Modifier</span>
+            </Link>
+            <button onClick={handleDelete}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+              <FaTrash />
+              <span>Supprimer</span>
+            </button>
           </div>
         </div>
         
-        <DeleteConfirmationModal
-            isOpen={showDeleteModal}
-            onClose={() => setShowDeleteModal(false)}
-            onConfirm={handleDelete}
-            title="Supprimer le produit"
-            message="Êtes-vous sûr de vouloir supprimer ce produit ? Cette action est irréversible."
-            loading={isDeleting}
-        />
+        {/* Main Content Section */}
+        <div className="grid grid-cols-3 gap-6">
+          {/* Left Column - Images */}
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <FaImages />
+                Images
+              </h2>
+              <div className="aspect-square rounded-lg overflow-hidden mb-4">
+                <Image
+                    src={product.images.length === 0 ? '/default.jpg' : product.images[selectedImageIndex].image}
+                    alt={product.name}
+                    width={500}
+                    height={500}
+                    className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                {product.images.map((image, index) => (
+                    <button
+                        key={index}
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-colors ${selectedImageIndex === index ? 'border-[#048B9A]' : 'border-transparent hover:border-gray-200'}`}
+                    >
+                      <Image
+                          src={image.image}
+                          alt={`${product.name} ${index + 1}`}
+                          width={100}
+                          height={100}
+                          className="w-full h-full object-cover"
+                      />
+                    </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Center Column - Main Info */}
+          <div className="col-span-2 space-y-6">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom du produit</label>
+                  <p className="text-lg font-semibold">{product.name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prix</label>
+                  <p className="text-lg font-semibold">{product.regular_price} GNF</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                  {product.categories.map((category, index) => (
+                      <span key={index} className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-green-900 dark:text-green-300">
+                    {category}
+                  </span>
+                  ))}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                  <p className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${product.stock_status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {product.stock_status ? 'En stock' : 'Rupture de stock'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="font-medium mb-4">Description</h3>
+              <p className="text-gray-600 whitespace-pre-wrap">{product.long_description}</p>
+            </div>
+            
+            {/* Features Section */}
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="font-medium mb-4">Caractéristiques</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p>Couleurs</p>
+                  <div>
+                    {product.colors.map((color, index) => (
+                        <span key={index}
+                              style={{ backgroundColor: color.hex_code }}
+                              className={`text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm`}>
+                      {color.name}
+                    </span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <p>Tailles</p>
+                </div>
+                
+                <div>
+                  <p>Categories</p>
+                </div>
+                
+                <div>
+                  <p>Etiquettes</p>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Reviews Section */}
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <FaComment />
+            Avis clients
+          </h2>
+          {product.reviews.length === 0 ? (
+              <p>Aucun commentaires sur ce produit</p>
+          ) : (
+              product.reviews.map((review, index) => (
+                  <div key={index} className="flex items-start gap-2.5 my-4">
+                    <div className="flex flex-col w-full max-w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                        <div>
+                          <Image src={review.user.image} width={40} height={40} className="rounded" alt=""/>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">{review.user.first_name} {review.user.last_name}</span>
+                        <span className="text-sm font-normal text-gray-500 dark:text-gray-400">On {review.created_at.replace('T', ' ').replace('Z', '')}</span>
+                      </div>
+                      <div className="text-base text-gray-700 dark:text-gray-200">
+                        {review.comment}
+                      </div>
+                    </div>
+                  </div>
+              ))
+          )}
+        </div>
+        
+        {/* Delete Confirmation Modal */}
+        {/*{showDeleteModal && (*/}
+        {/*    <DeleteConfirmationModal*/}
+        {/*        isOpen={showDeleteModal}*/}
+        {/*        onClose={() => setShowDeleteModal(false)}*/}
+        {/*        onDelete={handleDelete}*/}
+        {/*        isDeleting={isDeleting}*/}
+        {/*    />*/}
+        {/*)}*/}
       </>
   );
 }

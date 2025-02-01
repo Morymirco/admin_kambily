@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react';
-import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa';
-import {HOST_IP, PORT, PROTOCOL_HTTP, generateSlug, formatNumber} from "../../../constants";
 import toast, { Toaster } from 'react-hot-toast';
+import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa';
+import { HOST_IP, PORT, PROTOCOL_HTTP, formatNumber, generateSlug } from "../../../../constants";
 
 // Composant pour le bouton de suppression en masse
 const BulkDeleteButton = ({ selectedCount, onDelete }) => (

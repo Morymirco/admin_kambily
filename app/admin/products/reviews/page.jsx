@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { FaCheck, FaSearch, FaStar, FaTrash } from 'react-icons/fa';
-import {HOST_IP, isTokenValid, PORT, PROTOCOL_HTTP} from "../../../constants";
+import {HOST_IP, PORT, PROTOCOL_HTTP} from "../../../../constants";
 import {useRouter} from "next/navigation";
 
 const ReviewsPage = () => {

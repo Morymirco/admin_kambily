@@ -444,7 +444,7 @@ const ProductsPage = () => {
             <option value="active">Actif</option>
             <option value="inactive">Inactif</option>
           </select>
-
+          
           <select
             value={filters.priceRange}
             onChange={(e) => setFilters({...filters, priceRange: e.target.value})}
@@ -558,7 +558,7 @@ const ProductsPage = () => {
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       <img
-                        src={product.image}
+                        src={product.images[0].image}
                         alt={product.name}
                         className="h-10 w-10 rounded-lg object-cover"
                       />
@@ -571,11 +571,15 @@ const ProductsPage = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {product.category}
+                  {product.categories.map((category, index) => (
+                    <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                      {category}
+                    </span>
+                  ))}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex gap-1 flex-wrap">
-                    {product.tags.map((tag, index) => (
+                    {product.etiquettes.map((tag, index) => (
                       <span
                         key={index}
                         className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
@@ -586,7 +590,7 @@ const ProductsPage = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {product.price.toLocaleString()} GNF
+                  {product.regular_price.toLocaleString()} GNF
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {product.stock}

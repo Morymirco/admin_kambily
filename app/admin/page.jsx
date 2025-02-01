@@ -1,5 +1,6 @@
 'use client'
 import { FaBox, FaUsers, FaShoppingCart, FaChartLine } from 'react-icons/fa';
+import {useLogin} from "@/app/context/LoginContext";
 
 const Dashboard = () => {
   // Données de démonstration
@@ -10,9 +11,12 @@ const Dashboard = () => {
     { title: 'Revenus', value: '12.4M GNF', icon: FaChartLine, change: '+24%', color: 'bg-yellow-500' },
   ];
   
+  const {user, changeUser, token, changeToke} = useLogin()
+  
 
   return (
     <div>
+      <div className="bg-red-200">{user} Test Provider</div>
       <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>
 
       {/* Stats Cards */}

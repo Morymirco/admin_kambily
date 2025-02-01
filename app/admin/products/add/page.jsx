@@ -4,24 +4,26 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { FaPlus, FaTrash } from "react-icons/fa";
-import { generateSKU } from './../../../../constants';
+import {generateSKU, getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from './../../../../constants';
+import {useLogin} from "../../../context/LoginContext";
+import axios from "axios";
 
 export default function AddProduct() {
   const [formData, setFormData] = useState({
     name: '',
     short_description: '',
     long_description: '',
-    regular_price: 0,
-    promo_price: 0,
+    regular_price: 1,
+    promo_price: 1,
     sku: '',
     stock_status: true,
-    weight: 0,
-    length: 0,
-    width: 0,
-    height: 0,
+    weight: 1,
+    length: 1,
+    width: 1,
+    height: 1,
     product_type: 'variable',
     etat_stock: 'En Stock',
-    quantity: 0,
+    quantity: 1,
     categories: [],
     colors: [],
     sizes: [],
@@ -31,118 +33,54 @@ export default function AddProduct() {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagesPreviews, setImagesPreviews] = useState([]);
+  
+  const [availableTags, setAvailableTags] = useState([]);
   const [availableCategories, setAvailableCategories] = useState([]);
   const [availableColors, setAvailableColors] = useState([]);
   const [availableSizes, setAvailableSizes] = useState([]);
-  const [imageFiles, setImageFiles] = useState([]);
-  const [imagesPreviews, setImagesPreviews] = useState([]);
-  const [availableTags, setAvailableTags] = useState([]);
-  const ref = useRef(null)
   
+  const [token, setToken] = useState(localStorage.getItem ('access_token'));
+  
+  const ref = useRef(null)
   const router = useRouter();
+  
   
   // Modifier useEffect pour enlever l'appel à websocketManagement
   useEffect(() => {
-    // Avant la déconnexion ou avant de rediriger l'utilisateur
-    const currentRoute = window.location.pathname;  
-    localStorage.setItem('redirectRoute', currentRoute);  
-    
-    const token = localStorage.getItem('access_token');
+    console.log ("Token : ", token )
     if (!token) {
-      router.push('/login');
+      router.push('/admin/login');
       return;
     }
-    localStorage.setItem('access_token', token);
     
-    // Charger les données nécessaires
-    fetchCategories();
-    fetchColors();
-    fetchSizes();
-    fetchTags();
+    //Charger les données lors de l'initialisation de la page
+    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/attributes/of/`, getAxiosConfig(token) )
+        .then(result => {
+          if( result.status === 200 || result.status === 201 ) {
+            console.log (result.data)
+            setAvailableCategories(result.data.categories)
+            setAvailableColors(result.data.colors)
+            setAvailableSizes(result.data.sizes)
+            setAvailableTags(result.data.tags)
+          }
+          else{
+            console.log(result.data)
+          }
+        })
+        .catch(error => {
+          console.log(error)
+        })
+        .finally(()=>{
+          console.log('fin')
+        })
   }, [router]);
-  
-  // Récupérer les catégories principales
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('https://api.kambily.store/categories/', {
-        method: 'GET',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Accept': 'application/json'
-        }
-      });
-      const data = await response.json();
-      
-      // Filtrer pour n'avoir que les catégories principales (is_main = true)
-      // const mainCategories = data.filter(category => category.is_main === true);
-      setAvailableCategories(data);
-    } catch (err) {
-      console.error('Erreur lors du chargement des catégories:', err);
-      toast.error('Erreur lors du chargement des catégories');
-    }
-  };
-  
-  // Récupérer les couleurs
-  const fetchColors = async () => {
-    try {
-      const response = await fetch('https://api.kambily.store/colors/', {
-        method: 'GET',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Accept': 'application/json'
-        }
-      });
-      const data = await response.json();
-      setAvailableColors(data);
-    } catch (err) {
-      console.error('Erreur lors du chargement des colors:', err);
-      toast.error('Erreur lors du chargement des colors');
-    }
-  };
-  
-  // Récupérer les tailles
-  const fetchSizes = async () => {
-    try {
-      const response = await fetch('https://api.kambily.store/sizes/', {
-        method: 'GET',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Accept': 'application/json'
-        }
-      });
-      const data = await response.json();
-      setAvailableSizes(data);
-    } catch (err) {
-      console.error('Erreur lors du chargement des tailles:', err);
-      toast.error('Erreur lors du chargement des tailles');
-    }
-  };
-  
-  // Récupérer les tags
-  const fetchTags = async () => {
-    try {
-      const response = await fetch('https://api.kambily.store/tags/', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
-      });
-      const data = await response.json();
-      setAvailableTags(data);
-    } catch (err) {
-      console.error('Erreur lors du chargement des étiquettes:', err);
-      toast.error('Erreur lors du chargement des étiquettes');
-    }
-  };
   
   // Gérer l'ajout d'images
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
+    setFormData({...formData, images: files});
     
     // Créer les previews
     const newPreviews = files.map(file => URL.createObjectURL(file));
@@ -156,120 +94,139 @@ export default function AddProduct() {
   const handleRemoveImage = (index) => {
     setImageFiles(prev => prev.filter((_, i) => i !== index));
     setImagesPreviews(prev => prev.filter((_, i) => i !== index));
+    setFormData({...formData, images: Array.from(ref.current.files)});
   };
   
   // Soumettre le formulaire
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     
-    try {     
-      // Vérifier si des images ont été sélectionnées
-      if (imageFiles.length === 0) {
-        setError ('Au moins une image est requise');
-        setLoading (false);
-        return;
-      }
-      
-      const data = new FormData();
-      data.append('name', formData.name);
-      data.append('short_description', formData.short_description);
-      data.append('long_description', formData.long_description);
-      data.append('regular_price', formData.regular_price);
-      data.append('promo_price', formData.promo_price);
-      data.append('sku', formData.sku);
-      data.append('stock_status', formData.stock_status);
-      data.append('weight', formData.weight);
-      data.append('length', formData.length);
-      data.append('width', formData.width);
-      data.append('height', formData.height);
-      data.append('product_type', formData.product_type);
-      data.append('etat_stock', formData.etat_stock);
-      data.append('quantity', formData.quantity);
-      data.append('categories', `[${formData.categories}]`);
-      data.append('sizes', `[${formData.sizes}]`);
-      data.append('etiquettes', `[${formData.etiquettes}]`);
-      data.append('colors', `[${formData.colors}]`)
-      
-      // Si vous avez plusieurs fichiers, parcourez-les et ajoutez-les
-      Array.from(ref.current.files).forEach((file, index) => {
-        data.append(`images`, file);
-      });
-      
-      console.log(data)
-      const token = localStorage.getItem ('access_token');
-      
-      
-      const url = 'https://api.kambily.store/products/create/';
-      const meta = {
-        method: 'POST',
-        body: data,
-        headers : {
-          'Authorization' : `Bearer ${token}`,
-        },
-      };
-      const promise = fetch(url, meta)
-      promise.then(response => {
-        if (!response.ok) {
-          throw new Error('Erreur lors de la création du produit');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log(data);
-        toast.custom((t) => (
-          <div className={`${
-            t.visible ? 'animate-enter' : 'animate-leave'
-          } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
-            <div className="flex-1 w-0 p-4">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 pt-0.5">
-                  <div className="h-10 w-10 rounded-full bg-[#048B9A] flex items-center justify-center">
-                    <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="ml-3 flex-1">
-                  <p className="text-sm font-medium text-gray-900">
-                    Produit créé avec succès !
-                  </p>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Le produit "{formData.name}" a été ajouté à votre catalogue.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex border-l border-gray-200">
-              <button
-                onClick={() => toast.dismiss(t.id)}
-                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#048B9A] hover:text-[#037483] focus:outline-none"
-              >
-                Fermer
-              </button>
-            </div>
-          </div>
-        ), {
-          duration: 5000,
-        });
-        
-        // Redirection vers la liste des produits après 2 secondes
-        setTimeout(() => {
-          router.push('/admin/products');
-        }, 2000);
-        
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error(error);
-        toast.error(`Erreur : ${error.message}`);
-        setLoading(false);
-      });
-    } catch (e) {
-      setError(error.message);
-      setLoading(false)
+    if (imageFiles.length === 0) {
+      setError ('Au moins une image est requise');
+      setLoading (false);
+      return;
     }
+    
+    imageFiles.forEach(file => {
+    })
+    
+    
+    console.log(formData)
+    
+    axios.post(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/create/`, formData, getAxiosConfig(token, 'multipart/form-data') )
+        .then(result => {
+          console.log (result)
+          router.push('/admin/products');
+        })
+        .catch(error => {
+          console.log(error)
+        })
+        .finally(()=>{
+          setLoading(false)
+          setError(null)
+        })
+    
+    // try {
+    //   const data = new FormData();
+    //   data.append('name', formData.name);
+    //   data.append('short_description', formData.short_description);
+    //   data.append('long_description', formData.long_description);
+    //   data.append('regular_price', formData.regular_price);
+    //   data.append('promo_price', formData.promo_price);
+    //   data.append('sku', formData.sku);
+    //   data.append('stock_status', formData.stock_status);
+    //   data.append('weight', formData.weight);
+    //   data.append('length', formData.length);
+    //   data.append('width', formData.width);
+    //   data.append('height', formData.height);
+    //   data.append('product_type', formData.product_type);
+    //   data.append('etat_stock', formData.etat_stock);
+    //   data.append('quantity', formData.quantity);
+    //   data.append('categories', `[${formData.categories}]`);
+    //   data.append('sizes', `[${formData.sizes}]`);
+    //   data.append('etiquettes', `[${formData.etiquettes}]`);
+    //   data.append('colors', `[${formData.colors}]`)
+    //
+    //   // Si vous avez plusieurs fichiers, parcourez-les et ajoutez-les
+    //   Array.from(ref.current.files).forEach((file, index) => {
+    //     data.append(`images`, file);
+    //   });
+    //
+    //   console.log(data)
+    //   const token = localStorage.getItem ('access_token');
+    //
+    //
+    //   const url = 'https://api.kambily.store/products/create/';
+    //   const meta = {
+    //     method: 'POST',
+    //     body: data,
+    //     headers : {
+    //       'Authorization' : `Bearer ${token}`,
+    //     },
+    //   };
+    //   const promise = fetch(url, meta)
+    //   promise.then(response => {
+    //     if (!response.ok) {
+    //       throw new Error('Erreur lors de la création du produit');
+    //     }
+    //     return response.json();
+    //   })
+    //   .then(data => {
+    //     console.log(data);
+    //     toast.custom((t) => (
+    //       <div className={`${
+    //         t.visible ? 'animate-enter' : 'animate-leave'
+    //       } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
+    //         <div className="flex-1 w-0 p-4">
+    //           <div className="flex items-start">
+    //             <div className="flex-shrink-0 pt-0.5">
+    //               <div className="h-10 w-10 rounded-full bg-[#048B9A] flex items-center justify-center">
+    //                 <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    //                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+    //                 </svg>
+    //               </div>
+    //             </div>
+    //             <div className="ml-3 flex-1">
+    //               <p className="text-sm font-medium text-gray-900">
+    //                 Produit créé avec succès !
+    //               </p>
+    //               <p className="mt-1 text-sm text-gray-500">
+    //                 Le produit "{formData.name}" a été ajouté à votre catalogue.
+    //               </p>
+    //             </div>
+    //           </div>
+    //         </div>
+    //         <div className="flex border-l border-gray-200">
+    //           <button
+    //             onClick={() => toast.dismiss(t.id)}
+    //             className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#048B9A] hover:text-[#037483] focus:outline-none"
+    //           >
+    //             Fermer
+    //           </button>
+    //         </div>
+    //       </div>
+    //     ), {
+    //       duration: 5000,
+    //     });
+    //
+    //     // Redirection vers la liste des produits après 2 secondes
+    //     setTimeout(() => {
+    //       router.push('/admin/products');
+    //     }, 2000);
+    //
+    //     setLoading(false);
+    //   })
+    //   .catch(error => {
+    //     console.error(error);
+    //     toast.error(`Erreur : ${error.message}`);
+    //     setLoading(false);
+    //   });
+    // } catch (e) {
+    //   setError(error.message);
+    //   setLoading(false)
+    // }
   }
   
   return (
@@ -379,8 +336,8 @@ export default function AddProduct() {
                   <label className="block text-sm font-medium text-gray-700">SKU (Code produit unique)</label>
                   <input
                       type="text"
-                      value={generateSKU(formData)}
-                      onChange={(e) => setFormData ({...formData, sku: generateSKU(formData)})}
+                      value={formData.sku}
+                      onChange={(e) => setFormData ({...formData, sku: e.target.value})}
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#048B9A] focus:ring-[#048B9A]"
                       required
                       placeholder="Ex: PROD-001"

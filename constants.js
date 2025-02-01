@@ -1,17 +1,19 @@
 // Fichier de configuration avec les variables globales
 
-const HOST_DNS = 'api.kambily.store';
 
-const PROTOCOL_HTTPS = 'https';
-const PROTOCOL_WS = 'ws';
-const PROTOCOL_WSS = 'wss';
+export const HOST_IP = '127.0.0.1';
+export const PORT = ':8001';
+export const PROTOCOL_HTTP = 'http';
+export const PROTOCOL_WS = 'ws';
 
-// export const HOST_IP = '127.0.0.1';
-export const HOST_IP = HOST_DNS;
-// export const PORT = ':8001';
-export const PORT = '';
-// export const PROTOCOL_HTTP = 'http';
-export const PROTOCOL_HTTP = PROTOCOL_HTTPS;
+export const getAxiosConfig = (token, contentType = 'application/json') => {
+	return {
+		headers: {
+			'Content-Type': `${contentType}; charset=utf-8`,
+			'Authorization': `Bearer ${token}`
+		}
+	};
+}
 
 export const generateSlug = (name) => {
 	return name
@@ -65,6 +67,14 @@ export const isTokenValid = async () => {
 
 export const IsAuthenticated = async () => {
 	return isTokenValid()
+}
+
+// Fonction utilitaire pour convertir un blob URL en File
+export async function blobUrlToFile(blobUrl) {
+	const response = await fetch(blobUrl);
+	const blob = await response.blob();
+	const fileName = `image-${Date.now()}.jpg`;
+	return new File([blob], fileName, { type: blob.type });
 }
 
 export const generateSKU = (product) =>{

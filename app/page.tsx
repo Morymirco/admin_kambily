@@ -1,11 +1,10 @@
-import Image from "next/image";
-import Landing from "@/app/providers/authContext";
 import Dashboard from "@/app/admin/page";
+import LoginProvider from "@/app/context/LoginContext";
 
 export default function Home() {
   return (
-    <Landing>
-      <Dashboard/>
-    </Landing>
+      <LoginProvider>
+          <Dashboard></Dashboard>
+      </LoginProvider>
   );
 }
