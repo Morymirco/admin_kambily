@@ -1,13 +1,13 @@
 'use client'
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { FaLock } from 'react-icons/fa';
-import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from "../../../constants";
-import * as Yup from "yup";
 import axios from "axios";
 import { useFormik } from 'formik';
-import {useLogin} from "../../context/LoginContext";
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { FaLock } from 'react-icons/fa';
+import * as Yup from "yup";
+import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from "../../constants";
+import { useLogin } from "../context/LoginContext";
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Email invalide').required("Email requis"),
@@ -47,9 +47,10 @@ const AdminLogin = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="flex flex-col items-center">
-            <Image src="/logo.webp" alt="Kambily Logo" width={150} height={50} className="mb-6" />
+            <Image src="/logot.png" alt="Kambily Logo" width={150} height={50} className="mb-6" />
             <h2 className="text-center text-3xl font-bold text-gray-900">Administration</h2>
             <p className="mt-2 text-center text-sm text-gray-600">Connectez-vous à votre espace administrateur</p>
+
           </div>
           <div className="bg-white p-8 rounded-xl shadow-sm">
             <form onSubmit={formik.handleSubmit} className="space-y-6">
