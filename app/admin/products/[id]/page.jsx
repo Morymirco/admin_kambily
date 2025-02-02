@@ -48,14 +48,16 @@ export default function ProductDetailAdmin() {
     const fetchProduct = () => {
       const token = localStorage.getItem('access_token');
       if (!token) {
-        router.push('/test/login');
+        router.push('/login');
         return;
       }
       
       axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${params.id}/`, getAxiosConfig(token))
+
           .then(response => {
             if (response.status === 200 || response.status === 201) {
               setProduct(response.data);
+              console.log(response.data);
             } else {
               throw new Error('Erreur lors du chargement du produit');
             }
@@ -196,8 +198,9 @@ export default function ProductDetailAdmin() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
                   {product.categories.map((category, index) => (
                       <span key={index} className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-green-900 dark:text-green-300">
-                    {category}
+                    {category.name}
                   </span>
+
                   ))}
                 </div>
                 <div>
