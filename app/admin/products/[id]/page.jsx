@@ -1,15 +1,14 @@
 'use client'
 
+import axios from 'axios';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaArrowLeft, FaComment, FaEdit, FaEye, FaImages, FaTrash } from 'react-icons/fa';
-import axios from 'axios';
-import Link from 'next/link';
-import Image from 'next/image';
 import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from "../../../../constants";
 import { useLogin } from "../../../context/LoginContext";
-import DeleteConfirmationModal from '@/app/Components/Admin/DeleteConfirmationModal';
 
 export default function ProductDetailAdmin() {
   const params = useParams();
