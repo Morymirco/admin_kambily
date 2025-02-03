@@ -1,41 +1,61 @@
 'use client'
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import toast from 'react-hot-toast';
 import { FaTimes } from 'react-icons/fa';
+import axios from "axios";
+import {getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from "../../../../constants";
+import KModal from "../../../Components/KModal";
 
 const AddDelivererModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    zone: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    idCard: null,
-    photo: null
+      first_name: '',
+      last_name: '',
+      email: '',
+      phone_number: '',
+      password: '',
+      image : null,
+      zones: [],
+      identity_card: null,
   });
+  
+  const [zones, setZones] = useState([]);
+  const [loading, setLoading] = useState(false)
+  
+  useEffect(()=>{
+    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/delivery/deliveryzones/`)
+        .then(result => {
+          console.log(result)
+          if( result.status === 200 || result.status === 201){
+            setZones(result.data)
+          }
+        })
+        .catch(error=>{
+          console.log(error)
+        })
+        .finally(()=>{
+          console.log('finally')
+        })
+  }, [])
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setLoading(true)
+    console.log(formData)
+    console.log(`Token ${localStorage.getItem('access_token')}`)
     
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Les mots de passe ne correspondent pas');
-      return;
-    }
-
-    // Logique d'ajout du livreur
-    toast.success('Livreur ajouté avec succès');
-    onClose();
-    setFormData({
-      name: '',
-      phone: '',
-      zone: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      idCard: null,
-      photo: null
-    });
+    axios.post(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/deliverers/create/`, formData, getAxiosConfig(localStorage.getItem('access_token'), 'multipart/form-data') )
+        .then(result => {
+            console.log(result)
+            if( result.status === 200 || result.status === 201 ){
+            
+            }
+        })
+        .catch(error=>{
+            console.log(error)
+        })
+        .finally(()=>{
+            setLoading(false)
+        })
   };
 
   if (!isOpen) return null;
@@ -51,121 +71,160 @@ const AddDelivererModal = ({ isOpen, onClose }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Informations personnelles */}
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Nom complet</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                required
-              />
+            <div className="grid grid-cols-2 gap-4">
+                {/* Informations personnelles */}
+                <div>
+                    <label className="block text-sm text-gray-700 mb-1">Prénom</label>
+                    <input
+                        type="text"
+                        value={formData.first_name}
+                        onChange={(e) =>
+                            setFormData ({
+                                ...formData, // Conserve le reste de formData
+                                first_name: e.target.value,
+                            })
+                        }
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                        required
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm text-gray-700 mb-1">Nom</label>
+                    <input
+                        type="text"
+                        name={formData.last_name}
+                        value={formData.last_name}
+                        onChange={(e) =>
+                            setFormData ({
+                                ...formData, // Conserve le reste de formData
+                                last_name: e.target.value,
+                            })
+                        }
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                        required
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm text-gray-700 mb-1">Téléphone</label>
+                    <input
+                        type="tel"
+                        value={formData.phone_number}
+                        onChange={(e) => setFormData ({
+                            ...formData,
+                            phone_number: e.target.value,
+                        })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                        required
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm text-gray-700 mb-1">Email</label>
+                    <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData ({
+                            ...formData,
+                            email: e.target.value,
+                        })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                        required
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm text-gray-700 mb-1">Zone</label>
+                    <select
+                        value={formData.zone}
+                        onChange={(e) => setFormData ({
+                            ...formData,
+                            zone: e.target.value,
+                        })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                        required
+                    >
+                        {
+                            zones.map (zone => {
+                                return <option value={zone.id} id={zone.id}>{zone.name} {zone.country}</option>
+                            })
+                        }
+                    </select>
+                </div>
+                
+                {/* Mot de passe */}
+                <div>
+                    <label className="block text-sm text-gray-700 mb-1">Mot de passe</label>
+                    <input
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData ({
+                            ...formData,
+                            password: e.target.value,
+                        })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                        required
+                    />
+                </div>
+                
+                {/*<div>*/}
+                {/*  <label className="block text-sm text-gray-700 mb-1">Confirmer le mot de passe</label>*/}
+                {/*  <input*/}
+                {/*      type="password"*/}
+                {/*      value={formData.confirmPassword}*/}
+                {/*      onChange={(e) => setFormData ({...formData, confirmPassword: e.target.value})}*/}
+                {/*      className="w-full px-3 py-2 border rounded-lg text-sm"*/}
+                {/*      required*/}
+                {/*  />*/}
+                {/*</div>*/}
+                
+                {/* Documents */}
+                <div>
+                    <label className="block text-sm text-gray-700 mb-1">Photo</label>
+                    <input
+                        type="file"
+                        onChange={(e) => setFormData ({
+                            ...formData,
+                            image: e.target.files[0],
+                        })}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                        accept="image/*"
+                        required
+                    />
+                </div>
+                
+                <div>
+                    <label className="block text-sm text-gray-700 mb-1">Carte d'identité</label>
+                    <input
+                        type="file"
+                        onChange={(e) => setFormData ({...formData, identity_card: e.target.files[0]})}
+                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                        accept=".pdf"
+                        required
+                    />
+                </div>
+            
             </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Téléphone</label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                required
-              />
+            
+            <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
+                >
+                    Annuler
+                </button>
+                <button
+                    type="submit"
+                    className="px-4 py-2 bg-[#048B9A] text-white rounded-lg text-sm hover:bg-[#037483]"
+                >
+                    Ajouter
+                </button>
             </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Zone</label>
-              <select
-                value={formData.zone}
-                onChange={(e) => setFormData({...formData, zone: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                required
-              >
-                <option value="">Sélectionner une zone</option>
-                <option value="ratoma">Ratoma</option>
-                <option value="matam">Matam</option>
-                <option value="dixinn">Dixinn</option>
-                <option value="kaloum">Kaloum</option>
-              </select>
-            </div>
-
-            {/* Mot de passe */}
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Mot de passe</label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Confirmer le mot de passe</label>
-              <input
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                required
-              />
-            </div>
-
-            {/* Documents */}
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Photo</label>
-              <input
-                type="file"
-                onChange={(e) => setFormData({...formData, photo: e.target.files[0]})}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                accept="image/*"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Carte d'identité</label>
-              <input
-                type="file"
-                onChange={(e) => setFormData({...formData, idCard: e.target.files[0]})}
-                className="w-full px-3 py-2 border rounded-lg text-sm"
-                accept="image/*"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-[#048B9A] text-white rounded-lg text-sm hover:bg-[#037483]"
-            >
-              Ajouter
-            </button>
-          </div>
         </form>
       </div>
+        <KModal isOpen={loading} onClose={()=> setLoading(false)} title={'En cours...'}></KModal>
     </div>
   );
 };

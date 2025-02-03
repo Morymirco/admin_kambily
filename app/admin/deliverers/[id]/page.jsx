@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link';
-import { use, useState } from 'react';
+import {use, useEffect, useState} from 'react';
 import {
     FaArrowLeft,
     FaCalendarAlt,
@@ -13,13 +13,18 @@ import {
     FaPhone,
     FaStar
 } from 'react-icons/fa';
+import axios from "axios";
+import {getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from "../../../../constants";
+import Loader from "../../../Components/Loader";
 
 const DelivererDetailsPage = ({ params }) => {
   const { id } = use(params);
   const [activeTab, setActiveTab] = useState('overview');
+  const [loading, setLoading] = useState(true)
 
+  
   // Données de démonstration
-  const deliverer = {
+  const [deliverer, setDeliverer] = useState({
     id: id,
     name: 'Mamadou Diallo',
     photo: '/deliverers/photo.jpg',
@@ -63,7 +68,24 @@ const DelivererDetailsPage = ({ params }) => {
         1: 0
       }
     }
-  };
+  });
+  
+  useEffect(()=>{
+    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/deliverers/${id}/`, getAxiosConfig(localStorage.getItem('access_token')))
+        .then(result => {
+          console.log(result.data)
+          if( result.status === 200 || result.status === 201 ) {
+            setDeliverer(result.data)
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        })
+        .finally(()=>{
+          console.log('finally')
+          setLoading(false)
+        })
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -93,117 +115,124 @@ const DelivererDetailsPage = ({ params }) => {
       <div className="grid grid-cols-3 gap-6">
         {/* Carte profil */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center gap-4 mb-6">
-            <img
-              src={deliverer.photo}
-              alt={deliverer.name}
-              className="w-16 h-16 rounded-full object-cover"
-            />
-            <div>
-              <h2 className="font-medium text-lg">{deliverer.name}</h2>
-              <div className="flex items-center gap-1 text-sm text-gray-500">
-                <FaMapMarkerAlt size={12} />
-                <span>{deliverer.zone}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 text-sm">
-              <FaPhone className="text-gray-400" />
-              <span>{deliverer.phone}</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <FaEnvelope className="text-gray-400" />
-              <span>{deliverer.email}</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <FaClock className="text-gray-400" />
-              <span>Inscrit le {new Date(deliverer.joinDate).toLocaleDateString('fr-FR')}</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <FaStar className="text-yellow-400" />
-              <span className="font-medium">{deliverer.rating}</span>
-              <span className="text-gray-500">({deliverer.stats.totalDeliveries} livraisons)</span>
-            </div>
-          </div>
-
-          <div className="mt-6 pt-6 border-t space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">Statut</span>
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                deliverer.status === 'active'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}>
+          {
+            loading ?
+                <Loader/>
+                :
+                <div>
+                  <div className="flex items-center gap-4 mb-6">
+                    <img
+                        src={deliverer.customuser.image}
+                        alt={deliverer.customuser.first_name}
+                        className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <h2 className="font-medium text-lg">{deliverer.customuser.last_name}</h2>
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <FaMapMarkerAlt size={12}/>
+                        <span>{deliverer.zone}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-sm">
+                      <FaPhone className="text-gray-400"/>
+                      <span>{deliverer.customuser.phone_number}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <FaEnvelope className="text-gray-400"/>
+                      <span>{deliverer.customuser.email}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <FaClock className="text-gray-400"/>
+                      <span>Inscrit le {null}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <FaStar className="text-yellow-400"/>
+                      <span className="font-medium">{deliverer.rating}</span>
+                      <span className="text-gray-500">(10 livraisons)</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Statut</span>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          deliverer.status === 'active'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                      }`}>
                 {deliverer.status === 'active' ? 'Actif' : 'Inactif'}
               </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">Disponibilité</span>
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                deliverer.availability === 'available'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Disponibilité</span>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          deliverer.availability === 'available'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                      }`}>
                 {deliverer.availability === 'available' ? 'Disponible' : 'Indisponible'}
               </span>
-            </div>
-          </div>
+                    </div>
+                  </div>
+                </div>
+          }
         </div>
-
+        
         {/* Statistiques */}
         <div className="col-span-2 space-y-6">
           {/* KPIs */}
           <div className="grid grid-cols-4 gap-4">
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <FaMotorcycle className="text-[#048B9A]" />
+                <FaMotorcycle className="text-[#048B9A]"/>
                 <span>Total livraisons</span>
               </div>
-              <div className="text-2xl font-semibold">{deliverer.stats.totalDeliveries}</div>
+              <div className="text-2xl font-semibold">{deliverer.total_orders}</div>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <FaCalendarAlt className="text-[#048B9A]" />
+                <FaCalendarAlt className="text-[#048B9A]"/>
                 <span>Ce mois</span>
               </div>
-              <div className="text-2xl font-semibold">{deliverer.stats.thisMonth}</div>
+              <div className="text-2xl font-semibold">N/A</div>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <FaClockAlt className="text-green-600" />
+                <FaClockAlt className="text-green-600"/>
                 <span>À l'heure</span>
               </div>
-              <div className="text-2xl font-semibold text-green-600">{deliverer.stats.onTimeRate}%</div>
+              <div className="text-2xl font-semibold text-green-600">N/A</div>
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <FaMoneyBillWave className="text-[#048B9A]" />
+                <FaMoneyBillWave className="text-[#048B9A]"/>
                 <span>Gains totaux</span>
               </div>
-              <div className="text-2xl font-semibold">{deliverer.stats.totalEarnings.toLocaleString()} GNF</div>
+              <div className="text-2xl font-semibold">{deliverer.collected_payments}</div>
             </div>
           </div>
-
+          
           {/* Onglets */}
           <div className="bg-white rounded-lg shadow-sm">
             <div className="border-b px-4">
               <div className="flex gap-6">
                 <button
-                  onClick={() => setActiveTab('overview')}
-                  className={`py-4 text-sm font-medium border-b-2 -mb-px ${
-                    activeTab === 'overview'
-                      ? 'border-[#048B9A] text-[#048B9A]'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
+                    onClick={() => setActiveTab ('overview')}
+                    className={`py-4 text-sm font-medium border-b-2 -mb-px ${
+                        activeTab === 'overview'
+                            ? 'border-[#048B9A] text-[#048B9A]'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
                 >
                   Aperçu
                 </button>
                 <button
-                  onClick={() => setActiveTab('deliveries')}
-                  className={`py-4 text-sm font-medium border-b-2 -mb-px ${
-                    activeTab === 'deliveries'
+                    onClick={() => setActiveTab ('deliveries')}
+                    className={`py-4 text-sm font-medium border-b-2 -mb-px ${
+                        activeTab === 'deliveries'
                       ? 'border-[#048B9A] text-[#048B9A]'
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
@@ -230,15 +259,20 @@ const DelivererDetailsPage = ({ params }) => {
                   <div>
                     <h3 className="text-sm font-medium mb-4">Livraisons mensuelles</h3>
                     <div className="h-64 bg-gray-50 rounded flex items-end justify-between p-4">
-                      {deliverer.performance.monthly.map((data, index) => (
-                        <div key={index} className="flex flex-col items-center gap-2">
-                          <div 
-                            className="w-12 bg-[#048B9A] rounded-t"
-                            style={{ height: `${(data.deliveries/40)*100}%` }}
-                          />
-                          <div className="text-xs text-gray-500">{data.month}</div>
-                        </div>
-                      ))}
+                      {
+                        loading ?
+                            <Loader/>
+                            :
+                            deliverer.performance.monthly.map((data, index) => (
+                                <div key={index} className="flex flex-col items-center gap-2">
+                                  <div
+                                      className="w-12 bg-[#048B9A] rounded-t"
+                                      style={{ height: `${(data.deliveries/40)*100}%` }}
+                                  />
+                                  <div className="text-xs text-gray-500">{data.month}</div>
+                                </div>
+                            ))
+                      }
                     </div>
                   </div>
 
@@ -246,21 +280,26 @@ const DelivererDetailsPage = ({ params }) => {
                   <div>
                     <h3 className="text-sm font-medium mb-4">Distribution des notes</h3>
                     <div className="space-y-2">
-                      {Object.entries(deliverer.performance.ratings).reverse().map(([rating, percent]) => (
-                        <div key={rating} className="flex items-center gap-2">
-                          <div className="flex items-center gap-1 w-16">
-                            <FaStar className="text-yellow-400" size={12} />
-                            <span className="text-sm">{rating}</span>
-                          </div>
-                          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-yellow-400 rounded-full"
-                              style={{ width: `${percent}%` }}
-                            />
-                          </div>
-                          <span className="text-sm text-gray-500 w-12">{percent}%</span>
-                        </div>
-                      ))}
+                      {
+                        loading ?
+                            <Loader/>
+                            :
+                            Object.entries(deliverer.performance.ratings).reverse().map(([rating, percent]) => (
+                                <div key={rating} className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1 w-16">
+                                    <FaStar className="text-yellow-400" size={12} />
+                                    <span className="text-sm">{rating}</span>
+                                  </div>
+                                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-yellow-400 rounded-full"
+                                        style={{ width: `${percent}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-sm text-gray-500 w-12">{percent}%</span>
+                                </div>
+                            ))
+                      }
                     </div>
                   </div>
                 </div>

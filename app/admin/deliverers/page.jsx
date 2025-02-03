@@ -1,10 +1,13 @@
 'use client'
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import toast from 'react-hot-toast';
 import { FaEdit, FaMotorcycle, FaPhone, FaSearch, FaTrash } from 'react-icons/fa';
 import AddDelivererModal from './components/AddDelivererModal';
+import axios from "axios";
+import {getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from "../../../constants";
+import Loader from "../../Components/Loader";
 
 const DeliverersPage = () => {
   const router = useRouter();
@@ -16,31 +19,24 @@ const DeliverersPage = () => {
   });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
-  const deliverers = [
-    {
-      id: 1,
-      name: 'Mamadou Diallo',
-      phone: '+224 621 00 00 00',
-      zone: 'Ratoma',
-      status: 'active',
-      deliveriesCount: 145,
-      rating: 4.8,
-      currentDelivery: true,
-      availability: 'unavailable'
-    },
-    {
-      id: 2,
-      name: 'Ibrahima Sow',
-      phone: '+224 622 00 00 00',
-      zone: 'Matam',
-      status: 'inactive',
-      deliveriesCount: 89,
-      rating: 4.5,
-      currentDelivery: false,
-      availability: 'available'
-    },
-    // ... autres livreurs
-  ];
+  const [deliverers, setDeliverers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/deliverers/admin/`, getAxiosConfig(localStorage.getItem('access_token')))
+        .then(result => {
+          console.log(result)
+          if( result.status === 200 || result.status === 201 ) {
+            setDeliverers(result.data)
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        })
+        .finally(()=>{
+          setLoading(false)
+        })
+  }, []) // chargement lors du montage du composant
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -161,98 +157,108 @@ const DeliverersPage = () => {
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
-            {deliverers.map((deliverer) => (
-              <tr 
-                key={deliverer.id} 
-                className="hover:bg-gray-50 cursor-pointer"
-                onClick={() => handleRowClick(deliverer.id)}
-              >
-                <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    checked={selectedDeliverers.includes(deliverer.id)}
-                    onChange={() => handleSelectDeliverer(deliverer.id)}
-                    className="rounded text-[#048B9A] focus:ring-[#048B9A]"
-                  />
-                </td>
-                <td className="px-4 py-4">
-                  <div className="font-medium text-gray-900">{deliverer.name}</div>
-                  {deliverer.currentDelivery && (
-                    <span className="text-xs text-green-600">En livraison</span>
-                  )}
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <FaPhone className="mr-2" size={12} />
-                    {deliverer.phone}
-                  </div>
-                </td>
-                <td className="px-4 py-4 text-sm text-gray-600">
-                  {deliverer.zone}
-                </td>
-                <td className="px-4 py-4 text-sm text-gray-600">
-                  {deliverer.deliveriesCount}
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-900">
-                      {deliverer.rating}
-                    </span>
-                    <span className="ml-1 text-yellow-400">★</span>
-                  </div>
-                </td>
-                <td className="px-4 py-4">
+          {
+            loading ?
+                <Loader/>
+                :
+                <tbody className="divide-y divide-gray-200">
+                {deliverers.map ((deliverer) => (
+                    <tr
+                        key={deliverer.id}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleRowClick (deliverer.id)}
+                    >
+                      <td className="px-4 py-4" onClick={(e) => e.stopPropagation ()}>
+                        <input
+                            type="checkbox"
+                            checked={selectedDeliverers.includes (deliverer.id)}
+                            onChange={() => handleSelectDeliverer (deliverer.id)}
+                            className="rounded text-[#048B9A] focus:ring-[#048B9A]"
+                        />
+                      </td>
+                      <td className="px-4 py-4">
+                        <div
+                            className="font-medium text-gray-900">{deliverer.customuser.first_name} {deliverer.customuser.last_name}</div>
+                        {deliverer.currentDelivery && (
+                            <span className="text-xs text-green-600">En livraison</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <FaPhone className="mr-2" size={12}/>
+                          {deliverer.customuser.phone_number}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-600">
+                        <select name="zones" id="zones">
+                          {
+                            deliverer.zones.map((zone) => (
+                                <option value={zone.id} key={zone.id}>{zone.name} {zone.city}</option>
+                            ))
+                          }
+                        </select>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-600">
+                        N/A
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center">
+                          <span className="text-sm font-medium text-gray-900">{deliverer.rating}</span>
+                          <span className="ml-1 text-yellow-400">★</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    deliverer.availability === 'available'
-                      ? 'bg-green-100 text-green-800'
-                      : deliverer.availability === 'busy'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
+                      deliverer.availability === 'available'
+                          ? 'bg-green-100 text-green-800'
+                          : deliverer.availability === 'busy'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
                   }`}>
-                    {deliverer.availability === 'available' 
-                      ? 'Disponible' 
-                      : deliverer.availability === 'busy'
-                      ? 'Occupé'
-                      : 'Indisponible'}
+                    {deliverer.availability === 'available'
+                        ? 'Disponible'
+                        : deliverer.availability === 'busy'
+                            ? 'Occupé'
+                            : 'Indisponible'}
                   </span>
-                </td>
-                <td className="px-4 py-4">
+                      </td>
+                      <td className="px-4 py-4">
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    deliverer.status === 'active'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
+                      deliverer.customuser.is_active === 'active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
                   }`}>
-                    {deliverer.status === 'active' ? 'Actif' : 'Inactif'}
+                    {deliverer.customuser.is_active === 'active' ? 'Actif' : 'Inactif'}
                   </span>
-                </td>
-                <td className="px-4 py-4 text-right space-x-2" onClick={(e) => e.stopPropagation()}>
-                  <Link href={`/admin/deliverers/${deliverer.id}`}>
-                    <button className="text-[#048B9A] hover:text-[#037483]">
-                      <FaEdit size={14} />
-                    </button>
-                  </Link>
-                  <button 
-                    className="text-red-600 hover:text-red-800"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (window.confirm('Supprimer ce livreur ?')) {
-                        toast.success('Livreur supprimé');
-                      }
-                    }}
-                  >
-                    <FaTrash size={14} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+                      </td>
+                      <td className="px-4 py-4 text-right space-x-2" onClick={(e) => e.stopPropagation ()}>
+                        <Link href={`/admin/deliverers/${deliverer.id}`}>
+                          <button className="text-[#048B9A] hover:text-[#037483]">
+                            <FaEdit size={14}/>
+                          </button>
+                        </Link>
+                        <button
+                            className="text-red-600 hover:text-red-800"
+                            onClick={(e) => {
+                              e.stopPropagation ();
+                              if (window.confirm ('Supprimer ce livreur ?')) {
+                                toast.success ('Livreur supprimé');
+                              }
+                            }}
+                        >
+                          <FaTrash size={14}/>
+                        </button>
+                      </td>
+                    </tr>
+                ))}
+                </tbody>
+          }
         </table>
       </div>
-
-      <AddDelivererModal 
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+      
+      <AddDelivererModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen (false)}
       />
     </div>
   );
