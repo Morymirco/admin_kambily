@@ -330,8 +330,8 @@ const UsersPage = () => {
                       </div>
                     </td>
                     <td className="px-3 py-2 text-xs">{user.first_name}</td>
-                    <td className="px-3 py-2 text-xs">N/A</td>
-                    <td className="px-3 py-2 text-xs">{user.created_at.split('.')[0].replace('T', ' ')}</td>
+                    <td className="px-3 py-2 text-xs">{user.last_login}</td>
+                    <td className="px-3 py-2 text-xs">{user.created_at}</td>
                     <td className="px-3 py-2 text-xs">{user.email}</td>
                     <td className="px-3 py-2 text-xs">{user.orders.total_orders}</td>
                     <td className="px-3 py-2 text-xs">{user.orders.total_prices}</td>
