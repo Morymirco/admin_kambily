@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaComments, FaEdit, FaLayerGroup, FaList, FaPlus, FaSearch, FaSort, FaSortDown, FaSortUp, FaTags, FaTrash } from 'react-icons/fa';
-import {HOST_IP, PORT, PROTOCOL_HTTP} from "../../../constants";
 
 const ProductsPage = () => {
   const router = useRouter();
@@ -238,11 +237,11 @@ const ProductsPage = () => {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) {
-          router.push('/login');
+          router.push('/test/login');
           return;
         }
 
-        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/`, {
+        const response = await fetch('https://api.kambily.store/products/', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -257,8 +256,44 @@ const ProductsPage = () => {
         }
 
         const data = await response.json();
-        console.log('Données reçues:', data.products);
-        setProducts(data.products);
+        console.log('Données reçues:', data);
+
+        // Vérifiez si data est un tableau
+        if (Array.isArray(data.products)) {
+          const transformedProducts = data.products.map(product => ({
+            id: product.id,
+            image: product.images?.[0]?.image || '/placeholder.png',
+            name: product.name,
+            category: product.categories?.[0]?.name || 'Non catégorisé',
+            price: parseFloat(product.regular_price) || 0,
+            stock: parseInt(product.quantity) || 0,
+            status: product.stock_status ? 'active' : 'inactive',
+            tags: [
+              ...(product.promo_price ? ['Promo'] : []),
+              ...product.etiquettes?.map(tag => tag.name) || [],
+              product.etat_stock === 'Nouveau' ? 'Nouveau' : []
+            ],
+            date: new Date().toISOString(),
+            short_description: product.short_description,
+            long_description: product.long_description,
+            promo_price: product.promo_price,
+            sku: product.sku,
+            dimensions: {
+              weight: product.weight,
+              length: product.length,
+              width: product.width,
+              height: product.height
+            },
+            product_type: product.product_type,
+            colors: product.colors || [],
+            sizes: product.sizes || [],
+            gallery: product.images?.map(img => img.image) || []
+          }));
+
+          setProducts(transformedProducts);
+        } else {
+          throw new Error('Les données reçues ne sont pas un tableau');
+        }
       } catch (err) {
         console.error('Erreur:', err);
         setError(err.message);
@@ -275,30 +310,25 @@ const ProductsPage = () => {
     fetchProducts();
   }, [router]);
 
-  const handleDelete = (productId) => {
+  const handleDelete = async (productId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
       try {
-        fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/delete/${productId}/`, {
+        const response = await fetch(`https://api.kambily.store/products/${productId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
           }
-        })
-            .then((response)=>{
-              return response.json();
-            })
-            .then((response)=>{
-              console.log(response);
-              toast.success('Produit supprimé avec succès');
-              setProducts(products.filter(p => p.id !== productId));
-            })
-            .catch(error => {
-              toast.error('Erreur lors de la suppression du produit ' + error);
-              console.log(error);
-            })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur lors de la suppression');
+        }
+
+        toast.success('Produit supprimé avec succès');
+        // Rafraîchir la liste des produits
+        setProducts(products.filter(p => p.id !== productId));
       } catch (err) {
-        toast.error("Erreur survenue lors de la suppression du produit " + err);
-        console.log(err);
+        toast.error(err.message);
       }
     }
   };
@@ -444,7 +474,7 @@ const ProductsPage = () => {
             <option value="active">Actif</option>
             <option value="inactive">Inactif</option>
           </select>
-          
+
           <select
             value={filters.priceRange}
             onChange={(e) => setFilters({...filters, priceRange: e.target.value})}
@@ -558,7 +588,7 @@ const ProductsPage = () => {
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       <img
-                        src={product.images[0].image}
+                        src={product.image}
                         alt={product.name}
                         className="h-10 w-10 rounded-lg object-cover"
                       />
@@ -571,15 +601,11 @@ const ProductsPage = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {product.categories.map((category, index) => (
-                    <span key={index} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                      {category}
-                    </span>
-                  ))}
+                  {product.category}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex gap-1 flex-wrap">
-                    {product.etiquettes.map((tag, index) => (
+                    {product.tags.map((tag, index) => (
                       <span
                         key={index}
                         className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
@@ -590,18 +616,18 @@ const ProductsPage = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {product.regular_price.toLocaleString()} GNF
+                  {product.price.toLocaleString()} GNF
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {product.stock}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    product.stock_status
+                    product.status === 'active' 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {product.stock_status ? 'Actif' : 'Inactif'}
+                    {product.status === 'active' ? 'Actif' : 'Inactif'}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

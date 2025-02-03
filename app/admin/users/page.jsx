@@ -1,9 +1,14 @@
 'use client'
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import toast from 'react-hot-toast';
 import { FaEdit, FaEye, FaSearch, FaTimes, FaTrash, FaUserPlus } from 'react-icons/fa';
+import axios from "axios";
+import {getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from "../../../constants";
+import Loader from "../../Components/Loader";
+import {router} from "next/client";
+import KModal from "../../Components/KModal";
 
 const UsersPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,33 +37,24 @@ const UsersPage = () => {
     });
   };
 
-  // Données de démonstration étendues
-  const users = [
-    {
-      id: 1,
-      name: 'John Doe',
-      username: 'johndoe',
-      email: 'john@example.com',
-      role: 'customer',
-      status: 'active',
-      registered: '2024-02-20',
-      lastActivity: '2024-02-28 14:30',
-      orders: {
-        count: 12,
-        total: 1250000,
-        average: 104166
-      },
-      location: {
-        country: 'Guinée',
-        city: 'Conakry',
-        address: 'Rue KA 028, Kaloum'
-      },
-      billingInfo: {
-        phone: '+224 621 00 00 00'
-      }
-    },
-    // ... autres utilisateurs
-  ];
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState(false)
+  
+  useEffect(()=>{
+    axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/admin/`, getAxiosConfig(localStorage.getItem('access_token')))
+        .then(result => {
+          console.log(result);
+          setUsers(result.data)
+        })
+        .catch(error => {
+          console.log(error);
+        })
+        .finally(()=>{
+          console.log("finally");
+          setLoading(false)
+        })
+  }, []) // lord du montage du composant
 
   // Tri des utilisateurs
   const sortedUsers = [...users].sort((a, b) => {
@@ -103,8 +99,26 @@ const UsersPage = () => {
   };
 
   const handleDelete = (user) => {
-    setSelectedUser(user);
-    setShowDeleteModal(true);
+    console.log(user)
+    const email = user.email
+    setDeleting(true)
+    axios.delete(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/admin/delete/${email}/`, getAxiosConfig(localStorage.getItem('access_token')))
+        .then(result => {
+          console.log(result);
+          if( result.status === 200 || result.status === 201 ){
+            // router.push('admin/users') //possibilité de recharger la page
+            setUsers(users => users.filter(u => u.email !== email))
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        })
+        .finally(()=>{
+          setDeleting(false)
+          console.log("finally");
+        })
+    // setSelectedUser(user);
+    // setShowDeleteModal(true);
   };
 
   const confirmDelete = async () => {
@@ -121,7 +135,7 @@ const UsersPage = () => {
     }
   };
 
-  // Composant Modal réutilisable
+  // Composant KModal réutilisable
   const Modal = ({ isOpen, onClose, title, children }) => (
     <AnimatePresence>
       {isOpen && (
@@ -253,9 +267,9 @@ const UsersPage = () => {
         {/* Stats en ligne */}
         <div className="flex gap-3 text-xs border-t pt-2">
           {[
-            { label: 'Total', value: '1,234' },
-            { label: 'Nouveaux', value: '56' },
-            { label: 'Actifs', value: '789' },
+            { label: 'Total', value: users.length },
+            { label: 'Nouveaux', value: 12 },
+            { label: 'Actifs', value: (users.filter(u => u.status === 'is_active').length) },
             { label: 'Moy. commandes', value: '3.2' }
           ].map((stat, index) => (
             <div key={index} className="flex items-center gap-1.5">
@@ -270,100 +284,107 @@ const UsersPage = () => {
       <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
-            <tr>
-              {[
-                { key: 'name', label: 'Nom' },
-                { key: 'username', label: 'ID' },
-                { key: 'lastActivity', label: 'Activité' },
-                { key: 'registered', label: 'Inscription' },
-                { key: 'email', label: 'E-mail' },
-                { key: 'orders.count', label: 'Cmd.' },
-                { key: 'orders.total', label: 'Total' },
-                { key: 'orders.average', label: 'Moy.' },
-                { key: 'location.country', label: 'Pays' },
-                { key: 'location.city', label: 'Ville' }
-              ].map((col) => (
+          <tr>
+            {[
+              {key: "name", label: "Nom"},
+              {key: "username", label: "ID"},
+              {key: "lastActivity", label: "Activité"},
+              {key: "registered", label: "Inscription"},
+              {key: "email", label: "E-mail"},
+              {key: "orders.count", label: "Cmd."},
+              {key: "orders.total", label: "Total"},
+              {key: "orders.average", label: "Moy."},
+              {key: "location.country", label: "Pays"},
+              {key: "location.city", label: "Ville"},
+            ].map ((col) => (
                 <th
-                  key={col.key}
-                  onClick={() => handleSort(col.key)}
-                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    key={col.key}
+                    onClick={() => handleSort (col.key)}
+                    className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 >
-                  {col.label} {renderSortIcon(col.key)}
+                  {col.label} {renderSortIcon (col.key)}
                 </th>
-              ))}
-              <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
-                Actions
-              </th>
-            </tr>
+            ))}
+            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+              Actions
+            </th>
+          </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {sortedUsers.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-3 py-2">
-                  <div className="flex items-center">
-                    <div className="h-6 w-6 rounded-full bg-[#048B9A]/10 flex items-center justify-center text-[#048B9A] text-xs font-medium">
-                      {user.name.charAt(0)}
-                    </div>
-                    <span className="ml-2 font-medium text-xs">{user.name}</span>
-                  </div>
-                </td>
-                <td className="px-3 py-2 text-xs">{user.username}</td>
-                <td className="px-3 py-2 text-xs">{user.lastActivity}</td>
-                <td className="px-3 py-2 text-xs">
-                  {new Date(user.registered).toLocaleDateString()}
-                </td>
-                <td className="px-3 py-2 text-xs">{user.email}</td>
-                <td className="px-3 py-2 text-xs">{user.orders.count}</td>
-                <td className="px-3 py-2 text-xs">{user.orders.total.toLocaleString()}</td>
-                <td className="px-3 py-2 text-xs">{user.orders.average.toLocaleString()}</td>
-                <td className="px-3 py-2 text-xs">{user.location.country}</td>
-                <td className="px-3 py-2 text-xs">{user.location.city}</td>
-                <td className="px-3 py-2 text-right space-x-1">
-                  <button 
-                    onClick={() => handleView(user)}
-                    className="text-[#048B9A] hover:text-[#037483]"
-                  >
-                    <FaEye size={12} />
-                  </button>
-                  <button 
-                    onClick={() => handleEdit(user)}
-                    className="text-[#048B9A] hover:text-[#037483]"
-                  >
-                    <FaEdit size={12} />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(user)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <FaTrash size={12} />
-                  </button>
+          {loading ? (
+              <tr>
+                <td colSpan="11" className="text-center py-4">
+                  <Loader/>
                 </td>
               </tr>
-            ))}
+          ) : (
+              users.map ((user) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center">
+                        {/*<div*/}
+                        {/*    className="h-6 w-6 rounded-full bg-[#048B9A]/10 flex items-center justify-center text-[#048B9A] text-xs font-medium">*/}
+                        {/*  {user.last_name}*/}
+                        {/*</div>*/}
+                        <span className="ml-2 font-medium text-xs">{user.last_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-xs">{user.first_name}</td>
+                    <td className="px-3 py-2 text-xs">N/A</td>
+                    <td className="px-3 py-2 text-xs">{user.created_at.split('.')[0].replace('T', ' ')}</td>
+                    <td className="px-3 py-2 text-xs">{user.email}</td>
+                    <td className="px-3 py-2 text-xs">{user.orders.total_orders}</td>
+                    <td className="px-3 py-2 text-xs">{user.orders.total_prices}</td>
+                    <td className="px-3 py-2 text-xs">{user.orders.average}</td>
+                    <td className="px-3 py-2 text-xs">{user.address}</td>
+                    <td className="px-3 py-2 text-xs">{user.address}</td>
+                    <td className="px-3 py-2 text-right space-x-1">
+                      <button
+                          onClick={() => handleView (user)}
+                          className="text-[#048B9A] hover:text-[#037483]"
+                      >
+                        <FaEye size={12}/>
+                      </button>
+                      <button
+                          onClick={() => handleEdit (user)}
+                          className="text-[#048B9A] hover:text-[#037483]"
+                      >
+                        <FaEdit size={12}/>
+                      </button>
+                      <button
+                          onClick={() => handleDelete (user)}
+                          className="text-red-600 hover:text-red-800"
+                      >
+                        <FaTrash size={12}/>
+                      </button>
+                    </td>
+                  </tr>
+              ))
+          )}
           </tbody>
         </table>
       </div>
-
+      
       <Modal
-        isOpen={showViewModal}
-        onClose={() => setShowViewModal(false)}
-        title="Détails de l'utilisateur"
+          isOpen={showViewModal}
+          onClose={() => setShowViewModal (false)}
+          title="Détails de l'utilisateur"
       >
-        {selectedUser && renderUserDetails()}
+        {selectedUser && renderUserDetails ()}
       </Modal>
-
+      
       <Modal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        title="Modifier l'utilisateur"
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal (false)}
+          title="Modifier l'utilisateur"
       >
         {/* Formulaire d'édition */}
       </Modal>
-
+      
       <Modal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Confirmer la suppression"
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal (false)}
+          title="Confirmer la suppression"
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
@@ -371,21 +392,22 @@ const UsersPage = () => {
           </p>
           <div className="flex justify-end gap-3">
             <button
-              onClick={() => setShowDeleteModal(false)}
-              className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50"
+                onClick={() => setShowDeleteModal (false)}
+                className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50"
             >
               Annuler
             </button>
             <button
-              onClick={confirmDelete}
-              disabled={isProcessing}
-              className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                onClick={confirmDelete}
+                disabled={isProcessing}
+                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
             >
               {isProcessing ? 'Suppression...' : 'Supprimer'}
             </button>
           </div>
         </div>
       </Modal>
+      <KModal isOpen={deleting} onClose={() => setDeleting(false)} />
     </div>
   );
 };
