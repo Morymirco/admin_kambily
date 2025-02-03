@@ -223,7 +223,7 @@ const ProductCard = ({ image, gallery = [], title, price, oldPrice, inStock, des
         </div>
       </div>
 
-      {/* Modal */}
+      {/* KModal */}
       <AnimatePresence>
         {showModal && (
           <motion.div

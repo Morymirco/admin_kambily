@@ -279,7 +279,7 @@ export default function ProductDetailAdmin() {
           )}
         </div>
         
-        {/* Delete Confirmation Modal */}
+        {/* Delete Confirmation KModal */}
         {/*{showDeleteModal && (*/}
         {/*    <DeleteConfirmationModal*/}
         {/*        isOpen={showDeleteModal}*/}

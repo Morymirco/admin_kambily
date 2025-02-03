@@ -335,7 +335,7 @@ const Produit = ({
         </div>
       </div>
 
-      {/* Modal */}
+      {/* KModal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center bg-black bg-opacity-50 overflow-y-auto md:overflow-hidden">
           <div className="bg-white rounded-lg w-full max-w-5xl relative my-4 mx-2 md:m-0">
