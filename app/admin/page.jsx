@@ -12,6 +12,12 @@ const Dashboard = () => {
   ];
   
   const {user, changeUser, token, changeToke} = useLogin()
+  console.log(user)
+   useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user]);
   
 
   return (
