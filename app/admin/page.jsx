@@ -1,6 +1,8 @@
 'use client'
 import { FaBox, FaUsers, FaShoppingCart, FaChartLine } from 'react-icons/fa';
 import {useLogin} from "@/app/context/LoginContext";
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const Dashboard = () => {
   // Données de démonstration
