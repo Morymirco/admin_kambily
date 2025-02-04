@@ -237,7 +237,7 @@ const ProductsPage = () => {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) {
-          router.push('/test/login');
+          router.push('/login');
           return;
         }
 
@@ -300,7 +300,7 @@ const ProductsPage = () => {
         toast.error('Erreur lors du chargement des produits');
         
         if (err.message.includes('401') || err.message.includes('403')) {
-          router.push('/test/login');
+          router.push('/login');
         }
       } finally {
         setLoading(false);
