@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const Dashboard = () => {
+  const router = useRouter();
   // Données de démonstration
   const stats = [
     { title: 'Produits', value: '124', icon: FaBox, change: '+12%', color: 'bg-blue-500' },
