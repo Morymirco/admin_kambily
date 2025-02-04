@@ -48,7 +48,7 @@ export default function AddProduct() {
   // Modifier useEffect pour enlever l'appel à websocketManagement
   useEffect(() => {
     if (!localStorage.getItem ('access_token')) {
-      router.push('/admin/login');
+      router.push('/login');
       return;
     }
     

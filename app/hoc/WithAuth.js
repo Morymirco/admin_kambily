@@ -11,7 +11,7 @@ export default function WithAuth(Component) {
 		
 		useEffect(() => {
 			if (!token) {
-				router.push('/admin/login'); // Redirige vers la page de connexion si pas de token
+				router.push('/login'); // Redirige vers la page de connexion si pas de token
 			}
 		}, [token, router]);
 		
