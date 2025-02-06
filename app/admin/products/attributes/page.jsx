@@ -51,6 +51,9 @@ const AttributesPage = () => {
         const sizesData = await sizesResponse.json();
         const colorsData = await colorsResponse.json();
 
+        console.log(sizesData);
+        console.log(colorsData);
+
         // Combiner et formater les attributs
         const formattedAttributes = [
           ...sizesData.map(size => ({
@@ -126,8 +129,8 @@ const AttributesPage = () => {
 
       // Déterminer l'endpoint en fonction du type d'attribut
       const endpoint = attributeType === 'size' 
-        ? 'https://api.kambily.store/sizes/create'
-        : 'https://api.kambily.store/colors/create';
+        ? 'https://api.kambily.store/sizes/create/'
+        : 'https://api.kambily.store/colors/create/';
 
       const attributeData = {
         name: newAttribute.name,

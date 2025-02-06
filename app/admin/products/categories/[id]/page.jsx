@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { log } from 'util';
 
 const CategoryDetail = () => {
   const { id } = useParams();
@@ -23,6 +24,8 @@ const CategoryDetail = () => {
         );
         if (!response.ok) throw new Error('Erreur lors de la récupération de la catégorie');
         const data = await response.json();
+        console.log(data);
+        
         setCategory(data);
       } catch (error) {
         console.error('Erreur:', error);

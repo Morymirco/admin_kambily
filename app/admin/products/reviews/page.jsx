@@ -31,19 +31,20 @@ const ReviewsPage = () => {
           return;
         }
         
-        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/reviews/`, {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/reviews/admin/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
           }
         });
 
-        if (!response.ok) {
+      if (!response.ok) {
           toast.error('Erreur lors du chargement des avis');
           return;
         }
 
         const data = await response.json();
+        console.log(data);
         setReviews(data);
       } catch (err) {
         console.error('Erreur:', err);
@@ -269,7 +270,7 @@ const ReviewsPage = () => {
               <tr key={review.id} className="hover:bg-gray-50">
                 <td className="px-4 py-4">
                   <div className="font-medium">
-                    {review.user?.name || 'Utilisateur anonyme'}
+                    {review.user?.first_name + ' ' + review.user?.last_name || 'Utilisateur anonyme'}
                   </div>
                   <div className="text-xs text-gray-500">
                     {review.user?.email || 'Email non disponible'}
@@ -278,7 +279,7 @@ const ReviewsPage = () => {
                 <td className="px-4 py-4">
                   <div className="flex items-center">
                     <div className="ml-2">
-                      <div className="text-sm font-medium">ID: {review.product_id}</div>
+                      <div className="text-sm font-medium">ID: {review.id}</div>
                       <div className="text-xs text-gray-500">
                         {review.product?.name || 'Nom du produit non disponible'}
                       </div>

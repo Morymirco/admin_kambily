@@ -292,10 +292,15 @@ const CategoriesPage = () => {
       formData.append('slug', newCategory.name.toLowerCase().replace(/\s+/g, '-'));
       formData.append('is_main', newCategory.is_main);
 
+        console.log("re",newCategory.parent_category);
       // Ajouter la catégorie parente si ce n'est pas une catégorie principale
       if (!newCategory.is_main && newCategory.parent_category) {
         const parentCategory = categories.find(cat => cat.id === Number(newCategory.parent_category));
-        if (parentCategory) {
+
+        console.log(parentCategory);
+
+                if (parentCategory) {
+                  console.log("parentCategory",parentCategory.name);
           formData.append('parent_category', parentCategory.name);
         }
       }
@@ -305,6 +310,7 @@ const CategoriesPage = () => {
         formData.append('image', newCategory.image);
       }
 
+      console.log("formData",formData);
       const response = await fetch('https://api.kambily.store/categories/create/', {
         method: 'POST',
         headers: {

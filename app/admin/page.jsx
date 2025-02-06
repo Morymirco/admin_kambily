@@ -1,11 +1,9 @@
 'use client'
 import { FaBox, FaUsers, FaShoppingCart, FaChartLine } from 'react-icons/fa';
 import {useLogin} from "@/app/context/LoginContext";
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 const Dashboard = () => {
-  const router = useRouter();
+
   // Données de démonstration
   const stats = [
     { title: 'Produits', value: '124', icon: FaBox, change: '+12%', color: 'bg-blue-500' },
@@ -15,13 +13,7 @@ const Dashboard = () => {
   ];
   
   const {user, changeUser, token, changeToke} = useLogin()
-  console.log(user)
-   useEffect(() => {
-    if (!user) {
-      router.push('/login');
-    }
-  }, [user]);
-  
+
 
   return (
     <div>

@@ -269,9 +269,7 @@ const ProductsPage = () => {
             stock: parseInt(product.quantity) || 0,
             status: product.stock_status ? 'active' : 'inactive',
             tags: [
-              ...(product.promo_price ? ['Promo'] : []),
-              ...product.etiquettes?.map(tag => tag.name) || [],
-              product.etat_stock === 'Nouveau' ? 'Nouveau' : []
+              ...product.etiquettes?.map(tag => tag.name) || []
             ],
             date: new Date().toISOString(),
             short_description: product.short_description,
