@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaEnvelope, FaFileUpload, FaIdCard, FaLock, FaPhone, FaTimes, FaTruck, FaUser } from 'react-icons/fa';
+import WithAuth from '@/app/hoc/WithAuth';
 
 export default function RegisterManager() {
   const [formData, setFormData] = useState({

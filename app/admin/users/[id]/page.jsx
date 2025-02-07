@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { FaArrowLeft, FaEdit, FaTrash } from 'react-icons/fa';
 import { PROTOCOL_HTTP, HOST_IP, PORT } from '../../../../constants';
 import axios from 'axios';
+import WithAuth from '@/app/hoc/WithAuth';  
 
 const UserDetail = () => {
   const { id } = useParams();
@@ -206,4 +207,4 @@ const UserDetail = () => {
   );
 };
 
-export default UserDetail;
+export default WithAuth(UserDetail);

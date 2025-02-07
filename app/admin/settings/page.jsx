@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react';
 import { FaSave, FaStore, FaShippingFast, FaEnvelope, FaBell } from 'react-icons/fa';
+import WithAuth from '@/app/hoc/WithAuth';
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('general');
@@ -244,4 +245,4 @@ const SettingsPage = () => {
   );
 };
 
-export default SettingsPage; 
+export default WithAuth(SettingsPage); 

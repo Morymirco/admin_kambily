@@ -9,6 +9,7 @@ import {getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from "../../../constants";
 import Loader from "../../Components/Loader";
 import {router} from "next/client";
 import KModal from "../../Components/KModal";
+import WithAuth from '@/app/hoc/WithAuth';
 
 const UsersPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -424,4 +425,4 @@ const UsersPage = () => {
   );
 };
 
-export default UsersPage; 
+export default WithAuth(UsersPage); 

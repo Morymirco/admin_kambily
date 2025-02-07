@@ -3,6 +3,8 @@ import {useEffect, useState} from 'react';
 import {FaAd, FaBell, FaEdit, FaGift, FaTrash} from 'react-icons/fa';
 import {HOST_IP, PORT, PROTOCOL_HTTP} from "../../../constants";
 import toast, {Toaster} from "react-hot-toast";
+import WithAuth from '@/app/hoc/WithAuth';
+
 
 const MarketingPage = () => {
   // États pour les différentes sections
@@ -672,4 +674,4 @@ const MarketingPage = () => {
   );
 };
 
-export default MarketingPage; 
+export default WithAuth(MarketingPage); 

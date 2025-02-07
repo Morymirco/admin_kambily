@@ -5,6 +5,7 @@ import { FaTimes } from 'react-icons/fa';
 import axios from "axios";
 import {getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from "../../../../constants";
 import KModal from "../../../Components/KModal";
+import WithAuth from '@/app/hoc/WithAuth';
 
 const AddDelivererModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -229,4 +230,4 @@ const AddDelivererModal = ({ isOpen, onClose }) => {
   );
 };
 
-export default AddDelivererModal; 
+export default WithAuth(AddDelivererModal); 

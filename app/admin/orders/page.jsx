@@ -3,6 +3,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaCalendar, FaEye, FaSearch, FaTrash } from 'react-icons/fa';
 import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
+import WithAuth from '@/app/hoc/WithAuth';
 
 const OrdersPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -314,4 +315,4 @@ const OrdersPage = () => {
   );
 };
 
-export default OrdersPage; 
+export default WithAuth(OrdersPage); 

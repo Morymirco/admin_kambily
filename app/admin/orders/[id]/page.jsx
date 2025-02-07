@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FaArrowLeft, FaBox, FaTruck, FaUser } from 'react-icons/fa';
 import { HOST_IP, PORT, PROTOCOL_HTTP } from '../../../../constants';
+import WithAuth from '@/app/hoc/WithAuth';
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -168,4 +169,4 @@ const OrderDetail = () => {
   );
 };
 
-export default OrderDetail;
+export default WithAuth(OrderDetail);

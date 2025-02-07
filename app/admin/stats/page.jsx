@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
-
+import WithAuth from '@/app/hoc/WithAuth';
 const StatsPage = () => {
   const [timeRange, setTimeRange] = useState('today');
   const [stats, setStats] = useState(null);
@@ -172,4 +172,4 @@ const StatsPage = () => {
   );
 };
 
-export default StatsPage; 
+export default WithAuth(StatsPage); 

@@ -16,6 +16,7 @@ import {
 import axios from "axios";
 import {getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from "../../../../constants";
 import Loader from "../../../Components/Loader";
+import WithAuth from '@/app/hoc/WithAuth';
 
 const DelivererDetailsPage = ({ params }) => {
   const { id } = use(params);
@@ -407,4 +408,4 @@ const DelivererDetailsPage = ({ params }) => {
   );
 };
 
-export default DelivererDetailsPage; 
+export default WithAuth(DelivererDetailsPage); 

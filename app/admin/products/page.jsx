@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaComments, FaEdit, FaLayerGroup, FaList, FaPlus, FaSearch, FaSort, FaSortDown, FaSortUp, FaTags, FaTrash } from 'react-icons/fa';
 import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
+import WithAuth from '@/app/hoc/WithAuth';
 
 const ProductsPage = () => {
   const router = useRouter();
@@ -425,8 +426,8 @@ const ProductsPage = () => {
             >
               <FaComments className="text-gray-500" />
               <span>Avis</span>
-          </Link>
-      </div>
+            </Link>
+          </div>
 
           <div className="relative">
             <input
@@ -668,4 +669,4 @@ const ProductsPage = () => {
   );
 };
 
-export default ProductsPage; 
+export default WithAuth(ProductsPage); 

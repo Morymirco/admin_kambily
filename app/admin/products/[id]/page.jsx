@@ -8,11 +8,10 @@ import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaArrowLeft, FaComment, FaEdit, FaEye, FaImages, FaTrash } from 'react-icons/fa';
 import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from "../../../../constants";
+import WithAuth from '@/app/hoc/WithAuth';
 
-
-
-export default function ProductDetailAdmin() {
-  const params = useParams();
+const ProductDetailPage = ({ params }) => {
+  const { id } = params;
   const router = useRouter();
   
   const { token } = useLogin();
@@ -53,7 +52,7 @@ export default function ProductDetailAdmin() {
         return;
       }
       
-      axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${params.id}/`, getAxiosConfig(token))
+      axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${id}/`, getAxiosConfig(token))
 
           .then(response => {
             if (response.status === 200 || response.status === 201) {
@@ -69,16 +68,16 @@ export default function ProductDetailAdmin() {
           });
     };
     
-    if (params.id) {
+    if (id) {
       fetchProduct();
     }
-  }, [params.id, router]);
+  }, [id, router]);
   
   const handleDelete = () => {
     const isConfirmed = window.confirm('Confirmez-vous la suppression du produit ?');
     
     if (!isConfirmed) return;
-    axios.delete(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/delete/${params.id}/`, getAxiosConfig(token))
+    axios.delete(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/delete/${id}/`, getAxiosConfig(token))
         .then(res => {
           if (res.status === 200 || res.status === 201) {
             toast.success('Suppression');
@@ -129,11 +128,11 @@ export default function ProductDetailAdmin() {
             <h1 className="text-xl font-bold">Détails du produit</h1>
           </div>
           <div className="flex gap-3">
-            <Link href={`/test/testafficheproduct/${params.id}`} target="_blank" className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50">
+            <Link href={`/test/testafficheproduct/${id}`} target="_blank" className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50">
               <FaEye />
               <span>Voir</span>
             </Link>
-            <Link href={`/admin/products/${params.id}/edit`} className="flex items-center gap-2 px-4 py-2 bg-[#048B9A] text-white rounded-lg hover:bg-[#037483]">
+            <Link href={`/admin/products/${id}/edit`} className="flex items-center gap-2 px-4 py-2 bg-[#048B9A] text-white rounded-lg hover:bg-[#037483]">
               <FaEdit />
               <span>Modifier</span>
             </Link>
@@ -292,3 +291,5 @@ export default function ProductDetailAdmin() {
       </>
   );
 }
+
+export default WithAuth(ProductDetailPage);

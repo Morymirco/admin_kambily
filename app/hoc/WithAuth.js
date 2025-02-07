@@ -15,7 +15,12 @@ const WithAuth = (WrappedComponent) => {
     }, [loading, initialized, user, router]);
 
     if (loading || !initialized) {
-      return <p>Chargement...</p>; // Vous pouvez personnaliser ce message
+      // Afficher un indicateur de chargement pendant la vérification de l'authentification
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      );
     }
 
     return <WrappedComponent {...props} />;
