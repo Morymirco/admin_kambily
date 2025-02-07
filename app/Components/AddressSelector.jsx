@@ -50,7 +50,7 @@ export const AddressSelector = ({ selectedAddress, onAddressSelect, showAddButto
 
   const fetchAddresses = async () => {
     try {
-      const response = await authFetch('https://api.kambily.store/addresses/');
+      const response = await authFetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/addresses/`);
       if (!response.ok) throw new Error('Erreur lors de la récupération des adresses');
       const data = await response.json();
       setAddresses(data);
@@ -72,7 +72,7 @@ export const AddressSelector = ({ selectedAddress, onAddressSelect, showAddButto
     setIsSubmitting(true);
 
     try {
-      const response = await authFetch('https://api.kambily.store/addresses/', {
+      const response = await authFetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/addresses/`, {
         method: 'POST',
         body: JSON.stringify(formData)
       });

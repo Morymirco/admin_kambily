@@ -214,7 +214,7 @@ const TagsPage = () => {
 
     try {
       const deletePromises = selectedTags.map(tagId =>
-        fetch(`https://api.kambily.store/products/tags/${tagId}/`, {
+        fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/tags/${tagId}/`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -236,7 +236,7 @@ const TagsPage = () => {
   // Mise à jour d'un tag
   const handleEdit = async (tagId, updatedData) => {
     try {
-      const response = await fetch(`https://api.kambily.store/products/tags/${tagId}/`, { 
+      const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/tags/${tagId}/`, { 
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

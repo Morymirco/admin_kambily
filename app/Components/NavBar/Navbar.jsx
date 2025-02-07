@@ -70,7 +70,7 @@ export default function Navbar() {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const response = await authFetch('https://api.kambily.store/carts/');
+        const response = await authFetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/carts/`);
         if (response.ok) {
           const data = await response.json();
           setCartItems(data);
@@ -95,7 +95,7 @@ export default function Navbar() {
   // Fonction pour supprimer un article
   const removeFromCart = async (itemId) => {
     try {
-      const response = await authFetch(`https://api.kambily.store/carts/remove/${itemId}/`, {
+      const response = await authFetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/carts/remove/${itemId}/`, {
         method: 'DELETE'
       });
 
@@ -130,7 +130,7 @@ export default function Navbar() {
     const fetchCategories = async () => {
       const token = localStorage.getItem('access_token');
       try {
-        const response = await fetch('https://api.kambily.store/categories/',
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/categories/`,
           {
             method: 'GET',
             mode: 'cors',

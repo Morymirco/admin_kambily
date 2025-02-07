@@ -11,7 +11,7 @@ export default function JewelrySection() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('https://api.kambily.store/products/');
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/`);
         const data = await response.json();
         
         // Transformer les données pour correspondre aux props de Product

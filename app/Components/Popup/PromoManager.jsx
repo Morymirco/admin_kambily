@@ -12,7 +12,7 @@ export default function PromoManager() {
     // Ici, vous pourriez faire un appel API pour récupérer la promo active
     const fetchActivePromo = async () => {
       try {
-        const response = await fetch('https://api.kambily.store/active-promo');
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/active-promo`);
         const data = await response.json();
         if (data.active) {
           setCurrentPromo(data);

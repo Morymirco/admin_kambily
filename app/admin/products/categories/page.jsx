@@ -234,7 +234,7 @@ const CategoriesPage = () => {
 
     try {
       const deletePromises = selectedCategories.map(id =>
-        fetch(`https://api.kambily.store/categories/delete/${id}/`, {
+        fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/categories/delete/${id}/`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`,

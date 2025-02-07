@@ -241,7 +241,7 @@ const ProductsPage = () => {
           return;
         }
 
-        const response = await fetch('https://api.kambily.store/products/', {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -311,7 +311,7 @@ const ProductsPage = () => {
   const handleDelete = async (productId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
       try {
-        const response = await fetch(`https://api.kambily.store/products/${productId}`, {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${productId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
