@@ -17,7 +17,8 @@ const validationSchema = Yup.object().shape({
 const AdminLogin = () => {
   const router = useRouter();
   const [error, setError] = useState('');
-  
+  // const {changeToken, changeRefresh, changeUser} = useLogin()
+
   const formik = useFormik({
     initialValues: {email : '', password: ''},
     validationSchema,
@@ -27,9 +28,10 @@ const AdminLogin = () => {
       
       try {
         const response = await axios.post(url, values, getAxiosConfig(localStorage.getItem('access_token')));
-        changeToken(response.data.access_token);
-        changeRefresh(response.data.refresh_token);
-        changeUser(response.data.user);
+        console.log(response.data.access_token);
+        // changeRefresh(response.data.refresh_token);
+        // changeUser(response.data.user);
+
         localStorage.setItem("access_token", response.data.access_token);
         localStorage.setItem("refresh_token", response.data.refresh_token);
         localStorage.setItem("user", response.data.user);

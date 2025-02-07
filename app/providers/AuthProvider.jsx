@@ -1,8 +1,8 @@
 'use client'
-import { createContext, useContext, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { PROTOCOL_HTTP, HOST_IP, PORT } from '@/constants';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       const response = await axios.get(
-        `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/me/`,
+        `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/getuser/`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }) => {
       );
 
       setUser(response.data);
+      console.log('Utilisateur authentifié:', response.data);
     } catch (error) {
       console.error('Erreur de vérification auth:', error);
       localStorage.removeItem('access_token');
@@ -54,25 +55,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
-    try {
-      const response = await axios.post(
-        `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/login/`,
-        { email, password }
-      );
+//   const login = async (email, password) => {
+//     try {
+//       const response = await axios.post(
+//         `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/login/`,
+//         { email, password }
+//       );
 
-      const { access, user: userData } = response.data;
-      localStorage.setItem('access_token', access);
-      setUser(userData);
-      toast.success('Connexion réussie');
-      router.push('/admin');
-      return true;
-    } catch (error) {
-      console.error('Erreur de connexion:', error);
-      toast.error(error.response?.data?.message || 'Erreur de connexion');
-      return false;
-    }
-  };
+//       const { access, user: userData } = response.data;
+//       localStorage.setItem('access_token', access);
+//       setUser(userData);
+//       toast.success('Connexion réussie');
+//       router.push('/admin');
+//       return true;
+//     } catch (error) {
+//       console.error('Erreur de connexion:', error);
+//       toast.error(error.response?.data?.message || 'Erreur de connexion');
+//       return false;
+//     }
+//   };
 
   const logout = () => {
     localStorage.removeItem('access_token');
@@ -85,7 +86,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     initialized,
-    login,
+    // login,
     logout,
     checkAuth
   };
