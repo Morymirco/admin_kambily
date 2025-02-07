@@ -5,7 +5,7 @@
 // export const PORT = '';
 // export const PROTOCOL_HTTP = 'https';
 export const HOST_IP = 'kambily.store'; 
-export const PORT = ':8001';
+export const PORT = '';
 export const PROTOCOL_HTTP = 'https';
 export const PROTOCOL_WS = 'ws';
 
