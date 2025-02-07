@@ -14,7 +14,7 @@ const ProductDetailPage = ({ params }) => {
   const { id } = params;
   const router = useRouter();
   
-  const { token } = useLogin();
+  
   
   const [product, setProduct] = useState({
     name: '',
@@ -128,7 +128,7 @@ const ProductDetailPage = ({ params }) => {
             <h1 className="text-xl font-bold">Détails du produit</h1>
           </div>
           <div className="flex gap-3">
-            <Link href={`/test/testafficheproduct/${id}`} target="_blank" className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50">
+            <Link href={`https://kambily.store/boutique/${id}`} target="_blank" className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50">
               <FaEye />
               <span>Voir</span>
             </Link>

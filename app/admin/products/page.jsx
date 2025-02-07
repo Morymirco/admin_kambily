@@ -365,19 +365,29 @@ const ProductsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-16 h-16 border-4 border-[#048B9A] border-t-transparent rounded-full animate-spin" />
+      <div className="p-4 space-y-4 min-h-screen">
+        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-red-500 mb-4">{error}</p>
+      <div className="text-center text-red-500 p-4">
+        <p>{error}</p>
         <button 
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-[#048B9A] text-white rounded-lg"
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-[#048B9A] text-white rounded hover:bg-[#037483]"
         >
           Réessayer
         </button>

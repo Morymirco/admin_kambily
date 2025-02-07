@@ -21,13 +21,12 @@ const ReviewsPage = () => {
   });
 
   // Charger les avis
-  useEffect( () => {
-    
+  useEffect(() => {
     const fetchReviews = async () => {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) {
-          router.push ('/login');
+          router.push('/login');
           return;
         }
         
@@ -38,7 +37,7 @@ const ReviewsPage = () => {
           }
         });
 
-      if (!response.ok) {
+        if (!response.ok) {
           toast.error('Erreur lors du chargement des avis');
           return;
         }
@@ -55,7 +54,7 @@ const ReviewsPage = () => {
     };
 
     fetchReviews();
-  }, []);
+  }, [router]);
 
   const handleApprove = async (reviewId) => {
     try {
@@ -143,8 +142,18 @@ const ReviewsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-[#048B9A] border-t-transparent rounded-full animate-spin" />
+      <div className="p-4 space-y-4 min-h-screen">
+        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+        </div>
       </div>
     );
   }

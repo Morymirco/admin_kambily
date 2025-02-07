@@ -1,6 +1,6 @@
 'use client'
-import { FaBox, FaUsers, FaShoppingCart, FaChartLine } from 'react-icons/fa';
-import WithAuth from '@/app/hoc/WithAuth';
+import WithAuth from '@/hoc/WithAuth';
+import { FaBox, FaChartLine, FaShoppingCart, FaUsers } from 'react-icons/fa';
 
 const Dashboard = () => {
 
