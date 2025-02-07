@@ -3,7 +3,7 @@ import axios from "axios";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaPlus, FaTrash, FaUndo } from "react-icons/fa";
 import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from "../../../../../constants";
 import Loader from "../../../../Components/Loader";
 
@@ -38,6 +38,7 @@ export default function EditProductPage() {
   const [error, setError] = useState(null);
   const [imageFiles, setImageFiles] = useState([]);
   const [imagesPreviews, setImagesPreviews] = useState([]);
+  const [trash, setTrash] = useState([]);
   
   const [availableTags, setAvailableTags] = useState([]);
   const [availableCategories, setAvailableCategories] = useState([]);
@@ -114,9 +115,17 @@ export default function EditProductPage() {
   
   // Supprimer une image
   const handleRemoveImage = (index) => {
+    // Déplacer l'image dans la corbeille
+    setTrash(prev => [...prev, imagesPreviews[index]]);
     setImageFiles(prev => prev.filter((_, i) => i !== index));
     setImagesPreviews(prev => prev.filter((_, i) => i !== index));
     setFormData({...formData, images: Array.from(ref.current.files)});
+  };
+  
+  const handleRestoreImage = (index) => {
+    // Restaurer l'image de la corbeille
+    setImagesPreviews(prev => [...prev, trash[index]]);
+    setTrash(prev => prev.filter((_, i) => i !== index));
   };
   
   // Soumettre le formulaire
@@ -551,6 +560,32 @@ export default function EditProductPage() {
                   </label>
             </div>
           </div>
+          
+          {/* Corbeille */}
+          {trash.length > 0 && (
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">Corbeille</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                {trash.map((preview, index) => (
+                  <div key={index} className="relative aspect-square">
+                    <Image
+                      src={preview}
+                      alt={`Trash ${index + 1}`}
+                      fill
+                      className="object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRestoreImage(index)}
+                      className="absolute top-2 right-2 p-1 bg-green-500 text-white rounded-full hover:bg-green-600"
+                    >
+                      <FaUndo size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           {error && (
               <div className="bg-red-50 text-red-500 p-4 rounded-lg">
