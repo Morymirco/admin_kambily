@@ -9,6 +9,7 @@ import {getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP} from "../../../constants";
 import Loader from "../../Components/Loader";
 import {router} from "next/client";
 import KModal from "../../Components/KModal";
+import WithAuth from '@/app/hoc/WithAuth';
 
 const UsersPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -202,6 +203,10 @@ const UsersPage = () => {
     </div>
   );
 
+  const handleRowClick = (userId) => {
+    router.push(`/admin/users/${userId}`);
+  };
+
   return (
     <div className="space-y-4">
       {/* En-tête plus compact */}
@@ -319,7 +324,15 @@ const UsersPage = () => {
               </tr>
           ) : (
               users.map ((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr 
+                    key={user.id} 
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={(e) => {
+                      // Éviter la navigation si on clique sur les boutons d'action
+                      if (e.target.closest('button')) return;
+                      handleRowClick(user.id);
+                    }}
+                  >
                     <td className="px-3 py-2">
                       <div className="flex items-center">
                         {/*<div*/}
@@ -330,8 +343,8 @@ const UsersPage = () => {
                       </div>
                     </td>
                     <td className="px-3 py-2 text-xs">{user.first_name}</td>
-                    <td className="px-3 py-2 text-xs">N/A</td>
-                    <td className="px-3 py-2 text-xs">{user.created_at.split('.')[0].replace('T', ' ')}</td>
+                    <td className="px-3 py-2 text-xs">{user.last_login}</td>
+                    <td className="px-3 py-2 text-xs">{user.created_at}</td>
                     <td className="px-3 py-2 text-xs">{user.email}</td>
                     <td className="px-3 py-2 text-xs">{user.orders.total_orders}</td>
                     <td className="px-3 py-2 text-xs">{user.orders.total_prices}</td>
@@ -412,4 +425,4 @@ const UsersPage = () => {
   );
 };
 
-export default UsersPage; 
+export default WithAuth(UsersPage); 

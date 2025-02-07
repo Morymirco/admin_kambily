@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa';
 import { HOST_IP, PORT, PROTOCOL_HTTP, formatNumber, generateSlug } from "../../../../constants";
+import { useRouter } from 'next/navigation';
 
 // Composant pour le bouton de suppression en masse
 const BulkDeleteButton = ({ selectedCount, onDelete }) => (
@@ -114,31 +115,42 @@ const TagsPage = () => {
     description: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
-  // Récupération des tags
   useEffect(() => {
     const fetchTags = async () => {
       try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
         const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/tags/`, {
           headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
           }
         });
+
+        if (!response.ok) {
+          throw new Error('Erreur lors du chargement des étiquettes');
+        }
+
         const data = await response.json();
-        console.log(data)
+        console.log(data);
+       
         setTags(data);
       } catch (err) {
         console.error('Erreur:', err);
-        setError(err.message);
-        toast.error('Erreur lors du chargement des tags');
+        toast.error(err.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchTags();
-  }, []);
+  }, [router]);
 
   // Mise à jour du nom et génération automatique du slug
   const handleNameChange = (name) => {
@@ -214,7 +226,7 @@ const TagsPage = () => {
 
     try {
       const deletePromises = selectedTags.map(tagId =>
-        fetch(`https://api.kambily.store/products/tags/${tagId}/`, {
+        fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/tags/${tagId}/`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -236,7 +248,7 @@ const TagsPage = () => {
   // Mise à jour d'un tag
   const handleEdit = async (tagId, updatedData) => {
     try {
-      const response = await fetch(`https://api.kambily.store/products/tags/${tagId}/`, { 
+      const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/tags/${tagId}/`, { 
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -287,8 +299,18 @@ const TagsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="w-12 h-12 border-4 border-[#048B9A] border-t-transparent rounded-full animate-spin" />
+      <div className="p-4 space-y-4 min-h-screen">
+        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+        </div>
       </div>
     );
   }

@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react';
 import { FaCamera, FaKey, FaSave } from 'react-icons/fa';
-
+import WithAuth from '@/app/hoc/WithAuth';
 // Composant pour l'avatar
 const ProfileAvatar = ({ avatar, onAvatarChange }) => (
   <div className="relative">
@@ -227,4 +227,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage; 
+export default WithAuth(ProfilePage); 

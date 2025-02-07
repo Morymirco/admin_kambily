@@ -50,7 +50,7 @@ export default function EditProductPage() {
   useEffect(() => {
     console.log ("Token : ", localStorage.getItem ('access_token') )
     if (!localStorage.getItem ('access_token')) {
-      router.push('/admin/login');
+      router.push('/login');
       return;
     }
     

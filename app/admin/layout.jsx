@@ -13,6 +13,7 @@ import {
   FaTruck,
   FaUsers
 } from 'react-icons/fa';
+import WithAuth from '@/app/hoc/WithAuth';
 
 const AdminLayout = ({ children }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -121,4 +122,4 @@ const AdminLayout = ({ children }) => {
   );
 };
 
-export default AdminLayout; 
+export default WithAuth(AdminLayout); 

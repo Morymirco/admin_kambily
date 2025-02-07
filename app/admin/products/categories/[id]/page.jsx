@@ -4,6 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { log } from 'util';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '../../../../../constants';
 
 const CategoryDetail = () => {
   const { id } = useParams();
@@ -14,7 +16,7 @@ const CategoryDetail = () => {
   useEffect(() => {
     const fetchCategoryDetails = async () => {
       try {
-        const response = await fetch(`https://api.kambily.store/categories/${id}/`,
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/categories/${id}/`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -23,6 +25,8 @@ const CategoryDetail = () => {
         );
         if (!response.ok) throw new Error('Erreur lors de la récupération de la catégorie');
         const data = await response.json();
+        console.log(data);
+        
         setCategory(data);
       } catch (error) {
         console.error('Erreur:', error);
@@ -39,7 +43,7 @@ const CategoryDetail = () => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
 
     try {
-      const response = await fetch(`https://api.kambily.store/categories/${id}/delete/`, {
+      const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/categories/${id}/delete/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -75,7 +79,7 @@ const CategoryDetail = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="w-full mx-auto px-4 py-12">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">{category.name}</h1>
         <div className="flex gap-3">
@@ -109,7 +113,7 @@ const CategoryDetail = () => {
         )}
         <p><strong>Description:</strong> {category.description || 'Aucune description'}</p>
         <p><strong>Catégorie parente:</strong> {category.parent_category || 'Aucune'}</p>
-        <p><strong>Nombre de produits:</strong> {category.x || 0}</p>
+        <p><strong>Nombre de produits:</strong> {category.products ? category.products.length : 0}</p>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -119,7 +123,7 @@ const CategoryDetail = () => {
             {category.products.map((product) => (
               <li key={product.id} className="flex items-center gap-4">
                 <Image
-                  src={product.image || '/placeholder.png'}
+                  src={product.images[0].image || '/placeholder.png'}
                   alt={product.name}
                   width={50}
                   height={50}

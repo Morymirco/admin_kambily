@@ -55,7 +55,7 @@ export default function ElectronicsSection() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('https://api.kambily.store/products/');
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/`);
         if (!response.ok) throw new Error('Erreur réseau');
         const data = await response.json();
         

@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '../../../../constants';
 
 const AttributesPage = () => {
   const [selectedAttributes, setSelectedAttributes] = useState([]);
@@ -24,12 +25,12 @@ const AttributesPage = () => {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) {
-          router.push('/test/login');
+          router.push('/login');
           return;
         }
 
         // Charger les tailles
-        const sizesResponse = await fetch('https://api.kambily.store/sizes/', {
+        const sizesResponse = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/sizes/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -37,7 +38,7 @@ const AttributesPage = () => {
         });
 
         // Charger les couleurs
-        const colorsResponse = await fetch('https://api.kambily.store/colors/', {
+        const colorsResponse = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/colors/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -50,6 +51,9 @@ const AttributesPage = () => {
 
         const sizesData = await sizesResponse.json();
         const colorsData = await colorsResponse.json();
+
+        console.log(sizesData);
+        console.log(colorsData);
 
         // Combiner et formater les attributs
         const formattedAttributes = [
@@ -120,14 +124,14 @@ const AttributesPage = () => {
     try {
       const token = localStorage.getItem('access_token');
       if (!token) {
-        router.push('/test/login');
+        router.push('/login');
         return;
       }
 
       // Déterminer l'endpoint en fonction du type d'attribut
       const endpoint = attributeType === 'size' 
-        ? 'https://api.kambily.store/sizes/create'
-        : 'https://api.kambily.store/colors/create';
+        ? `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/sizes/create/`
+        : `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/colors/create/`;
 
       const attributeData = {
         name: newAttribute.name,

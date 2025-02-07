@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaComments, FaEdit, FaLayerGroup, FaList, FaPlus, FaSearch, FaSort, FaSortDown, FaSortUp, FaTags, FaTrash } from 'react-icons/fa';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
+import WithAuth from '@/app/hoc/WithAuth';
 
 const ProductsPage = () => {
   const router = useRouter();
@@ -237,11 +239,11 @@ const ProductsPage = () => {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) {
-          router.push('/test/login');
+          router.push('/login');
           return;
         }
 
-        const response = await fetch('https://api.kambily.store/products/', {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -269,9 +271,7 @@ const ProductsPage = () => {
             stock: parseInt(product.quantity) || 0,
             status: product.stock_status ? 'active' : 'inactive',
             tags: [
-              ...(product.promo_price ? ['Promo'] : []),
-              ...product.etiquettes?.map(tag => tag.name) || [],
-              product.etat_stock === 'Nouveau' ? 'Nouveau' : []
+              ...product.etiquettes?.map(tag => tag.name) || []
             ],
             date: new Date().toISOString(),
             short_description: product.short_description,
@@ -300,7 +300,7 @@ const ProductsPage = () => {
         toast.error('Erreur lors du chargement des produits');
         
         if (err.message.includes('401') || err.message.includes('403')) {
-          router.push('/test/login');
+          router.push('/login');
         }
       } finally {
         setLoading(false);
@@ -313,7 +313,7 @@ const ProductsPage = () => {
   const handleDelete = async (productId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
       try {
-        const response = await fetch(`https://api.kambily.store/products/${productId}`, {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/${productId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -365,19 +365,29 @@ const ProductsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-16 h-16 border-4 border-[#048B9A] border-t-transparent rounded-full animate-spin" />
+      <div className="p-4 space-y-4 min-h-screen">
+        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-red-500 mb-4">{error}</p>
+      <div className="text-center text-red-500 p-4">
+        <p>{error}</p>
         <button 
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-[#048B9A] text-white rounded-lg"
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-[#048B9A] text-white rounded hover:bg-[#037483]"
         >
           Réessayer
         </button>
@@ -426,8 +436,8 @@ const ProductsPage = () => {
             >
               <FaComments className="text-gray-500" />
               <span>Avis</span>
-          </Link>
-      </div>
+            </Link>
+          </div>
 
           <div className="relative">
             <input
@@ -669,4 +679,4 @@ const ProductsPage = () => {
   );
 };
 
-export default ProductsPage; 
+export default WithAuth(ProductsPage); 

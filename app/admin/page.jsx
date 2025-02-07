@@ -1,8 +1,9 @@
 'use client'
-import { FaBox, FaUsers, FaShoppingCart, FaChartLine } from 'react-icons/fa';
-import {useLogin} from "@/app/context/LoginContext";
+import WithAuth from '@/hoc/WithAuth';
+import { FaBox, FaChartLine, FaShoppingCart, FaUsers } from 'react-icons/fa';
 
 const Dashboard = () => {
+
   // Données de démonstration
   const stats = [
     { title: 'Produits', value: '124', icon: FaBox, change: '+12%', color: 'bg-blue-500' },
@@ -11,12 +12,11 @@ const Dashboard = () => {
     { title: 'Revenus', value: '12.4M GNF', icon: FaChartLine, change: '+24%', color: 'bg-yellow-500' },
   ];
   
-  const {user, changeUser, token, changeToke} = useLogin()
-  
 
+
+  
   return (
     <div>
-      <div className="bg-red-200">{user} Test Provider</div>
       <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>
 
       {/* Stats Cards */}
@@ -69,4 +69,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default WithAuth(Dashboard); 

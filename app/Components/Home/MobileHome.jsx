@@ -51,7 +51,7 @@ export default function MobileHome() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('https://api.kambily.store/products/', {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/`, {
           method: 'GET',
           mode: 'cors',
           headers: {

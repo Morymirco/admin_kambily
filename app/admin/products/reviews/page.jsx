@@ -21,17 +21,16 @@ const ReviewsPage = () => {
   });
 
   // Charger les avis
-  useEffect( () => {
-    
+  useEffect(() => {
     const fetchReviews = async () => {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) {
-          router.push ('/login');
+          router.push('/login');
           return;
         }
         
-        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/reviews/`, {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/reviews/admin/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -44,6 +43,7 @@ const ReviewsPage = () => {
         }
 
         const data = await response.json();
+        console.log(data);
         setReviews(data);
       } catch (err) {
         console.error('Erreur:', err);
@@ -54,12 +54,12 @@ const ReviewsPage = () => {
     };
 
     fetchReviews();
-  }, []);
+  }, [router]);
 
   const handleApprove = async (reviewId) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`https://api.kambily.store/products/reviews/${reviewId}/approve`, {
+      const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/reviews/${reviewId}/approve`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -92,7 +92,7 @@ const ReviewsPage = () => {
 
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`https://api.kambily.store/products/reviews/${reviewId}`, {
+      const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/products/reviews/${reviewId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -113,6 +113,10 @@ const ReviewsPage = () => {
       console.error('Erreur:', err);
       toast.error(err.message);
     }
+  };
+
+  const handleRowClick = (reviewId) => {
+    router.push(`/admin/products/reviews/${reviewId}`);
   };
 
   // Filtrer les avis selon les critères
@@ -138,8 +142,18 @@ const ReviewsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-[#048B9A] border-t-transparent rounded-full animate-spin" />
+      <div className="p-4 space-y-4 min-h-screen">
+        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+        </div>
       </div>
     );
   }
@@ -266,10 +280,17 @@ const ReviewsPage = () => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {filteredReviews.map((review) => (
-              <tr key={review.id} className="hover:bg-gray-50">
+              <tr 
+                key={review.id} 
+                className="hover:bg-gray-50 cursor-pointer"
+                onClick={(e) => {
+                  if (e.target.closest('button')) return;
+                  handleRowClick(review.id);
+                }}
+              >
                 <td className="px-4 py-4">
                   <div className="font-medium">
-                    {review.user?.name || 'Utilisateur anonyme'}
+                    {review.user?.first_name + ' ' + review.user?.last_name || 'Utilisateur anonyme'}
                   </div>
                   <div className="text-xs text-gray-500">
                     {review.user?.email || 'Email non disponible'}
@@ -278,7 +299,7 @@ const ReviewsPage = () => {
                 <td className="px-4 py-4">
                   <div className="flex items-center">
                     <div className="ml-2">
-                      <div className="text-sm font-medium">ID: {review.product_id}</div>
+                      <div className="text-sm font-medium">ID: {review.id}</div>
                       <div className="text-xs text-gray-500">
                         {review.product?.name || 'Nom du produit non disponible'}
                       </div>
@@ -307,7 +328,10 @@ const ReviewsPage = () => {
                 <td className="px-4 py-4 text-right space-x-2">
                   {review.status === 'pending' && (
                     <button
-                      onClick={() => handleApprove(review.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleApprove(review.id);
+                      }}
                       className="text-green-600 hover:text-green-800"
                       title="Approuver"
                     >
@@ -315,7 +339,10 @@ const ReviewsPage = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => handleDelete(review.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(review.id);
+                    }}
                     className="text-red-600 hover:text-red-800"
                     title="Supprimer"
                   >

@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { FaLock } from 'react-icons/fa';
 import * as Yup from "yup";
 import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from "../../constants";
-import { useLogin } from "../context/LoginContext";
+
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Email invalide').required("Email requis"),
@@ -17,8 +17,8 @@ const validationSchema = Yup.object().shape({
 const AdminLogin = () => {
   const router = useRouter();
   const [error, setError] = useState('');
-  const {changeToken, changeRefresh, changeUser} = useLogin()
-  
+  // const {changeToken, changeRefresh, changeUser} = useLogin()
+
   const formik = useFormik({
     initialValues: {email : '', password: ''},
     validationSchema,
@@ -28,11 +28,12 @@ const AdminLogin = () => {
       
       try {
         const response = await axios.post(url, values, getAxiosConfig(localStorage.getItem('access_token')));
-        changeToken(response.data.access);
-        changeRefresh(response.data.refresh);
-        changeUser(response.data.user);
-        localStorage.setItem("access_token", response.data.access);
-        localStorage.setItem("refresh_token", response.data.refresh);
+        console.log(response.data.access_token);
+        // changeRefresh(response.data.refresh_token);
+        // changeUser(response.data.user);
+
+        localStorage.setItem("access_token", response.data.access_token);
+        localStorage.setItem("refresh_token", response.data.refresh_token);
         localStorage.setItem("user", response.data.user);
         router.push('/admin/products');
       } catch (error) {

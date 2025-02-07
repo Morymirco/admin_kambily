@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { FaEdit, FaEye, FaImage, FaSearch, FaSpinner, FaTimes, FaTrash } from 'react-icons/fa';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '../../../../constants';
+
 
 const CategoriesPage = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -34,11 +36,11 @@ const CategoriesPage = () => {
       try {
         const token = localStorage.getItem('access_token');
         if (!token) {
-          router.push('/test/login');
+          router.push('/login');
           return;
         }
 
-        const response = await fetch('https://api.kambily.store/categories/', {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/categories/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -208,7 +210,7 @@ const CategoriesPage = () => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
 
     try {
-      const response = await fetch(`https://api.kambily.store/categories/delete/${id}/`, {
+      const response = await fetch(`http://192.168.137.1:8001/categories/delete/${id}/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -234,7 +236,7 @@ const CategoriesPage = () => {
 
     try {
       const deletePromises = selectedCategories.map(id =>
-        fetch(`https://api.kambily.store/categories/delete/${id}/`, {
+        fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/categories/delete/${id}/`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -273,7 +275,7 @@ const CategoriesPage = () => {
     try {
       const token = localStorage.getItem('access_token');
       if (!token) {
-        router.push('/test/login');
+        router.push('/login');
         return;
       }
 
@@ -292,10 +294,15 @@ const CategoriesPage = () => {
       formData.append('slug', newCategory.name.toLowerCase().replace(/\s+/g, '-'));
       formData.append('is_main', newCategory.is_main);
 
+        console.log("re",newCategory.parent_category);
       // Ajouter la catégorie parente si ce n'est pas une catégorie principale
       if (!newCategory.is_main && newCategory.parent_category) {
         const parentCategory = categories.find(cat => cat.id === Number(newCategory.parent_category));
-        if (parentCategory) {
+
+        console.log(parentCategory);
+
+                if (parentCategory) {
+                  console.log("parentCategory",parentCategory.name);
           formData.append('parent_category', parentCategory.name);
         }
       }
@@ -305,7 +312,8 @@ const CategoriesPage = () => {
         formData.append('image', newCategory.image);
       }
 
-      const response = await fetch('https://api.kambily.store/categories/create/', {
+      console.log("formData",formData);
+      const response = await fetch('http://192.168.137.1:8001/categories/create/', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -362,8 +370,18 @@ const CategoriesPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-16 h-16 border-4 border-[#048B9A] border-t-transparent rounded-full animate-spin" />
+      <div className="p-4 space-y-4 min-h-screen">
+        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded animate-pulse"></div>
+        </div>
       </div>
     );
   }
