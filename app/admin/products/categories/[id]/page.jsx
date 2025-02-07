@@ -15,7 +15,7 @@ const CategoryDetail = () => {
   useEffect(() => {
     const fetchCategoryDetails = async () => {
       try {
-        const response = await fetch(`https://api.kambily.store/categories/${id}/`,
+        const response = await fetch(`http://192.168.1.133:8001/categories/${id}/`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -42,7 +42,7 @@ const CategoryDetail = () => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
 
     try {
-      const response = await fetch(`https://api.kambily.store/categories/${id}/delete/`, {
+      const response = await fetch(`http://192.168.137.1:8001/categories/${id}/delete/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`

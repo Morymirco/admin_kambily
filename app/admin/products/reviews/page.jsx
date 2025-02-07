@@ -116,6 +116,10 @@ const ReviewsPage = () => {
     }
   };
 
+  const handleRowClick = (reviewId) => {
+    router.push(`/admin/products/reviews/${reviewId}`);
+  };
+
   // Filtrer les avis selon les critères
   const filteredReviews = reviews.filter(review => {
     const matchesSearch = (
@@ -267,7 +271,14 @@ const ReviewsPage = () => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {filteredReviews.map((review) => (
-              <tr key={review.id} className="hover:bg-gray-50">
+              <tr 
+                key={review.id} 
+                className="hover:bg-gray-50 cursor-pointer"
+                onClick={(e) => {
+                  if (e.target.closest('button')) return;
+                  handleRowClick(review.id);
+                }}
+              >
                 <td className="px-4 py-4">
                   <div className="font-medium">
                     {review.user?.first_name + ' ' + review.user?.last_name || 'Utilisateur anonyme'}
@@ -308,7 +319,10 @@ const ReviewsPage = () => {
                 <td className="px-4 py-4 text-right space-x-2">
                   {review.status === 'pending' && (
                     <button
-                      onClick={() => handleApprove(review.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleApprove(review.id);
+                      }}
                       className="text-green-600 hover:text-green-800"
                       title="Approuver"
                     >
@@ -316,7 +330,10 @@ const ReviewsPage = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => handleDelete(review.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(review.id);
+                    }}
                     className="text-red-600 hover:text-red-800"
                     title="Supprimer"
                   >

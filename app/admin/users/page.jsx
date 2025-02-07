@@ -202,6 +202,10 @@ const UsersPage = () => {
     </div>
   );
 
+  const handleRowClick = (userId) => {
+    router.push(`/admin/users/${userId}`);
+  };
+
   return (
     <div className="space-y-4">
       {/* En-tête plus compact */}
@@ -319,7 +323,15 @@ const UsersPage = () => {
               </tr>
           ) : (
               users.map ((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr 
+                    key={user.id} 
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={(e) => {
+                      // Éviter la navigation si on clique sur les boutons d'action
+                      if (e.target.closest('button')) return;
+                      handleRowClick(user.id);
+                    }}
+                  >
                     <td className="px-3 py-2">
                       <div className="flex items-center">
                         {/*<div*/}
