@@ -1,24 +1,25 @@
-"use client"
-import { useEffect } from 'react';
+'use client'
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
-import {useLogin} from "../context/LoginContext";
+import { useEffect } from 'react';
 
-export default function WithAuth(Component) {
-	
-	return function AuthenticatedComponent(props) {
-		const { token } = useLogin();
-		const router = useRouter();
-		
-		useEffect(() => {
-			if (!token) {
-				router.push('/login'); // Redirige vers la page de connexion si pas de token
-			}
-		}, [token, router]);
-		
-		if (!token) {
-			return null; // Affiche rien pendant la redirection
-		}
-		
-		return <Component {...props} />;
-	};
-}
+const WithAuth = (WrappedComponent) => {
+  return (props) => {
+    const { user, loading, initialized } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+      if (!loading && initialized && !user) {
+        router.push('/login');
+      }
+    }, [loading, initialized, user, router]);
+
+    if (loading || !initialized) {
+      return <p>Chargement...</p>; // Vous pouvez personnaliser ce message
+    }
+
+    return <WrappedComponent {...props} />;
+  };
+};
+
+export default WithAuth; 

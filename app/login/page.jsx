@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { FaLock } from 'react-icons/fa';
 import * as Yup from "yup";
 import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from "../../constants";
-import { useLogin } from "../context/LoginContext";
+
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Email invalide').required("Email requis"),
@@ -17,7 +17,6 @@ const validationSchema = Yup.object().shape({
 const AdminLogin = () => {
   const router = useRouter();
   const [error, setError] = useState('');
-  const {changeToken, changeRefresh, changeUser} = useLogin()
   
   const formik = useFormik({
     initialValues: {email : '', password: ''},
