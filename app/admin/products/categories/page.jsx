@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { FaEdit, FaEye, FaImage, FaSearch, FaSpinner, FaTimes, FaTrash } from 'react-icons/fa';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '../../../../constants';
+
 
 const CategoriesPage = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -38,7 +40,7 @@ const CategoriesPage = () => {
           return;
         }
 
-        const response = await fetch('http://192.168.137.1:8001/categories/', {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/categories/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'

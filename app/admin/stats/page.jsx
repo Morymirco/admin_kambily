@@ -1,43 +1,45 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   FaChartLine, FaChartBar, FaChartPie, 
   FaShoppingCart, FaUsers, FaMoneyBillWave 
 } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
 
 const StatsPage = () => {
   const [timeRange, setTimeRange] = useState('week');
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Données de démonstration
-  const stats = {
-    revenue: {
-      total: '12.5M',
-      percentage: '+24%',
-      trend: 'up'
-    },
-    orders: {
-      total: '284',
-      percentage: '+18%',
-      trend: 'up'
-    },
-    customers: {
-      total: '842',
-      percentage: '+12%',
-      trend: 'up'
-    },
-    averageOrder: {
-      total: '145K',
-      percentage: '-5%',
-      trend: 'down'
-    }
-  };
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/stats?range=${timeRange}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        if (!response.ok) throw new Error('Erreur lors de la récupération des statistiques');
+        const data = await response.json();
+        setStats(data);
+      } catch (error) {
+        console.error('Erreur:', error);
+        toast.error('Erreur lors de la récupération des statistiques');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const topProducts = [
-    { name: 'Ensemble Pyjama', sales: 124, revenue: '8.06M GNF' },
-    { name: 'Robe d\'été', sales: 98, revenue: '5.88M GNF' },
-    { name: 'Sac à main', sales: 76, revenue: '3.8M GNF' },
-    { name: 'Montre', sales: 65, revenue: '3.25M GNF' },
-  ];
+    fetchStats();
+  }, [timeRange]);
+
+  if (loading) {
+    return <div className="text-center py-12">Chargement des statistiques...</div>;
+  }
+
+  if (!stats) {
+    return <div className="text-center py-12 text-red-500">Impossible de charger les statistiques</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -161,7 +163,7 @@ const StatsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {topProducts.map((product, index) => (
+              {stats.topProducts.map((product, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {product.name}

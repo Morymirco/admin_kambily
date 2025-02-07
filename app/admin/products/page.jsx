@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaComments, FaEdit, FaLayerGroup, FaList, FaPlus, FaSearch, FaSort, FaSortDown, FaSortUp, FaTags, FaTrash } from 'react-icons/fa';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
 
 const ProductsPage = () => {
   const router = useRouter();

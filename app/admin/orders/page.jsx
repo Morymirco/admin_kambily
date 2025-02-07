@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaCalendar, FaEye, FaSearch, FaTrash } from 'react-icons/fa';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
 
 const OrdersPage = () => {
   const [searchQuery, setSearchQuery] = useState('');

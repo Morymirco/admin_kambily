@@ -3,7 +3,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FaArrowLeft, FaBox, FaTruck, FaUser } from 'react-icons/fa';
-import { PROTOCOL_HTTP, HOST_IP, PORT } from '../../../../constants';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '../../../../constants';
 
 const OrderDetail = () => {
   const { id } = useParams();

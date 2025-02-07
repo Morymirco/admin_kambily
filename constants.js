@@ -1,12 +1,12 @@
 // Fichier de configuration avec les variables globales
 
 
-// export const HOST_IP = 'api.kambily.store';
-// export const PORT = '';
-// export const PROTOCOL_HTTP = 'https';
-export const HOST_IP = 'kambily.store'; 
+export const HOST_IP = 'api.kambily.store';
 export const PORT = '';
 export const PROTOCOL_HTTP = 'https';
+// export const HOST_IP = '192.168.1.133'; 
+// export const PORT = ':8001';
+// export const PROTOCOL_HTTP = 'http';
 export const PROTOCOL_WS = 'ws';
 
 export const getAxiosConfig = (token, contentType = 'application/json') => {

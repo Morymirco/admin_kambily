@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { FaEdit, FaSearch, FaTrash } from 'react-icons/fa';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '../../../../constants';
 
 const AttributesPage = () => {
   const [selectedAttributes, setSelectedAttributes] = useState([]);
