@@ -28,11 +28,11 @@ const AdminLogin = () => {
       
       try {
         const response = await axios.post(url, values, getAxiosConfig(localStorage.getItem('access_token')));
-        changeToken(response.data.access);
-        changeRefresh(response.data.refresh);
+        changeToken(response.data.access_token);
+        changeRefresh(response.data.refresh_token);
         changeUser(response.data.user);
-        localStorage.setItem("access_token", response.data.access);
-        localStorage.setItem("refresh_token", response.data.refresh);
+        localStorage.setItem("access_token", response.data.access_token);
+        localStorage.setItem("refresh_token", response.data.refresh_token);
         localStorage.setItem("user", response.data.user);
         router.push('/admin/products');
       } catch (error) {

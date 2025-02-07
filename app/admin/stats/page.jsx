@@ -5,22 +5,24 @@ import {
   FaShoppingCart, FaUsers, FaMoneyBillWave 
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
 
 const StatsPage = () => {
-  const [timeRange, setTimeRange] = useState('week');
+  const [timeRange, setTimeRange] = useState('today');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/stats?range=${timeRange}`, {
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/managers/dashboard/detailed-stats/`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`
           }
         });
         if (!response.ok) throw new Error('Erreur lors de la récupération des statistiques');
         const data = await response.json();
+        console.log(data);
         setStats(data);
       } catch (error) {
         console.error('Erreur:', error);
@@ -31,7 +33,7 @@ const StatsPage = () => {
     };
 
     fetchStats();
-  }, [timeRange]);
+  }, []);
 
   if (loading) {
     return <div className="text-center py-12">Chargement des statistiques...</div>;
@@ -40,6 +42,8 @@ const StatsPage = () => {
   if (!stats) {
     return <div className="text-center py-12 text-red-500">Impossible de charger les statistiques</div>;
   }
+
+  const currentStats = stats[timeRange];
 
   return (
     <div className="space-y-6">
@@ -52,9 +56,9 @@ const StatsPage = () => {
           className="border rounded-lg px-4 py-2 focus:outline-none focus:border-[#048B9A]"
         >
           <option value="today">Aujourd'hui</option>
-          <option value="week">Cette semaine</option>
-          <option value="month">Ce mois</option>
-          <option value="year">Cette année</option>
+          <option value="this_week">Cette semaine</option>
+          <option value="this_month">Ce mois</option>
+          <option value="this_year">Cette année</option>
         </select>
       </div>
 
@@ -66,14 +70,10 @@ const StatsPage = () => {
             <div className="bg-blue-100 p-3 rounded-lg">
               <FaMoneyBillWave className="w-6 h-6 text-blue-600" />
             </div>
-            <span className={`text-sm font-medium ${
-              stats.revenue.trend === 'up' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {stats.revenue.percentage}
-            </span>
+            {/* Ajoutez ici la logique pour le pourcentage si nécessaire */}
           </div>
           <h3 className="text-gray-500 text-sm mb-1">Revenus totaux</h3>
-          <p className="text-2xl font-bold">{stats.revenue.total} GNF</p>
+          <p className="text-2xl font-bold">{currentStats.revenue.toLocaleString()} GNF</p>
         </div>
 
         {/* Commandes */}
@@ -82,14 +82,10 @@ const StatsPage = () => {
             <div className="bg-purple-100 p-3 rounded-lg">
               <FaShoppingCart className="w-6 h-6 text-purple-600" />
             </div>
-            <span className={`text-sm font-medium ${
-              stats.orders.trend === 'up' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {stats.orders.percentage}
-            </span>
+            {/* Ajoutez ici la logique pour le pourcentage si nécessaire */}
           </div>
           <h3 className="text-gray-500 text-sm mb-1">Commandes</h3>
-          <p className="text-2xl font-bold">{stats.orders.total}</p>
+          <p className="text-2xl font-bold">{currentStats.orders}</p>
         </div>
 
         {/* Clients */}
@@ -98,30 +94,22 @@ const StatsPage = () => {
             <div className="bg-green-100 p-3 rounded-lg">
               <FaUsers className="w-6 h-6 text-green-600" />
             </div>
-            <span className={`text-sm font-medium ${
-              stats.customers.trend === 'up' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {stats.customers.percentage}
-            </span>
+            {/* Ajoutez ici la logique pour le pourcentage si nécessaire */}
           </div>
           <h3 className="text-gray-500 text-sm mb-1">Nouveaux clients</h3>
-          <p className="text-2xl font-bold">{stats.customers.total}</p>
+          <p className="text-2xl font-bold">{currentStats.users}</p>
         </div>
 
-        {/* Panier moyen */}
+        {/* Produits */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-yellow-100 p-3 rounded-lg">
               <FaChartLine className="w-6 h-6 text-yellow-600" />
             </div>
-            <span className={`text-sm font-medium ${
-              stats.averageOrder.trend === 'up' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {stats.averageOrder.percentage}
-            </span>
+            {/* Ajoutez ici la logique pour le pourcentage si nécessaire */}
           </div>
-          <h3 className="text-gray-500 text-sm mb-1">Panier moyen</h3>
-          <p className="text-2xl font-bold">{stats.averageOrder.total} GNF</p>
+          <h3 className="text-gray-500 text-sm mb-1">Produits ajoutés</h3>
+          <p className="text-2xl font-bold">{currentStats.products}</p>
         </div>
       </div>
 
@@ -163,7 +151,7 @@ const StatsPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {stats.topProducts.map((product, index) => (
+              {/* {currentStats.topProducts.map((product, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {product.name}
@@ -175,7 +163,7 @@ const StatsPage = () => {
                     {product.revenue}
                   </td>
                 </tr>
-              ))}
+              ))} */}
             </tbody>
           </table>
         </div>
