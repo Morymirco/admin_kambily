@@ -67,6 +67,7 @@ export default function EditProductPage() {
             etiquettes: result.data.etiquettes.map(etiquette => etiquette.id),
           })
           console.log (result.data)
+          setImagesPreviews(result.data.images.map(image => image.image));
         })
         .catch(error => {
           console.log(error)
@@ -115,7 +116,6 @@ export default function EditProductPage() {
   
   // Supprimer une image
   const handleRemoveImage = (index) => {
-    // Déplacer l'image dans la corbeille
     setTrash(prev => [...prev, imagesPreviews[index]]);
     setImageFiles(prev => prev.filter((_, i) => i !== index));
     setImagesPreviews(prev => prev.filter((_, i) => i !== index));
@@ -123,7 +123,6 @@ export default function EditProductPage() {
   };
   
   const handleRestoreImage = (index) => {
-    // Restaurer l'image de la corbeille
     setImagesPreviews(prev => [...prev, trash[index]]);
     setTrash(prev => prev.filter((_, i) => i !== index));
   };
@@ -520,45 +519,49 @@ export default function EditProductPage() {
             }
           </div>
           
-          {/* Images */}
+          {/* Images existantes */}
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-lg font-semibold mb-4">Images du produit</h2>
-            
+            <h2 className="text-lg font-semibold mb-4">Images existantes</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-              {imagesPreviews.map ((preview, index) => (
+              {imagesPreviews.map((preview, index) => (
+                preview && (
                   <div key={index} className="relative aspect-square">
                     <Image
-                        src={preview}
-                        alt={`Preview ${index + 1}`}
-                        fill
-                        className="object-cover rounded-lg"
+                      src={preview}
+                      alt={`Image ${index + 1}`}
+                      fill
+                      className="object-cover rounded-lg"
                     />
                     <button
-                        type="button"
-                        onClick={() => handleRemoveImage (index)}
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
                     >
-                      <FaTrash size={12}/>
+                      <FaTrash size={12} />
                     </button>
                   </div>
+                )
               ))}
-              
-              <label
-                  className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg hover:border-[#048B9A] transition-colors cursor-pointer">
-                    <input
-                        type="file"
-                        multiple
-                        accept="image/png, image/jpeg"
-                        onChange={handleImageChange}
-                        className="hidden"
-                        ref={ref}
-                    />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <FaPlus className="w-8 h-8 text-gray-400"/>
-                      <span className="mt-2 text-sm text-gray-500">Ajouter des images</span>
-                    </div>
-                  </label>
             </div>
+          </div>
+          
+          {/* Ajouter de nouvelles images */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">Ajouter de nouvelles images</h2>
+            <label className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg hover:border-[#048B9A] transition-colors cursor-pointer">
+              <input
+                type="file"
+                multiple
+                accept="image/png, image/jpeg"
+                onChange={handleImageChange}
+                className="hidden"
+                ref={ref}
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <FaPlus className="w-10 h-10 text-[#048B9A] hover:text-[#037483] transition-colors" />
+                <span className="mt-2 text-sm text-gray-500">Ajouter des images</span>
+              </div>
+            </label>
           </div>
           
           {/* Corbeille */}
@@ -567,21 +570,23 @@ export default function EditProductPage() {
               <h2 className="text-lg font-semibold mb-4">Corbeille</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
                 {trash.map((preview, index) => (
-                  <div key={index} className="relative aspect-square">
-                    <Image
-                      src={preview}
-                      alt={`Trash ${index + 1}`}
-                      fill
-                      className="object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRestoreImage(index)}
-                      className="absolute top-2 right-2 p-1 bg-green-500 text-white rounded-full hover:bg-green-600"
-                    >
-                      <FaUndo size={12} />
-                    </button>
-                  </div>
+                  preview && (
+                    <div key={index} className="relative aspect-square">
+                      <Image
+                        src={preview}
+                        alt={`Trash ${index + 1}`}
+                        fill
+                        className="object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRestoreImage(index)}
+                        className="absolute top-2 right-2 p-1 bg-green-500 text-white rounded-full hover:bg-green-600"
+                      >
+                        <FaUndo size={12} />
+                      </button>
+                    </div>
+                  )
                 ))}
               </div>
             </div>

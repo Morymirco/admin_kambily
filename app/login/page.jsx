@@ -3,11 +3,11 @@ import axios from "axios";
 import { useFormik } from 'formik';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaLock } from 'react-icons/fa';
 import * as Yup from "yup";
 import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from "../../constants";
-
+import { useAuth } from '../providers/AuthProvider';
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().email('Email invalide').required("Email requis"),
@@ -18,6 +18,13 @@ const AdminLogin = () => {
   const router = useRouter();
   const [error, setError] = useState('');
   // const {changeToken, changeRefresh, changeUser} = useLogin()
+  const {user, loading, initialized} = useAuth();
+  useEffect(() => {
+    console.log(user);
+    if(user){
+      router.push('/admin/products');
+    }
+  }, [user, router]);
 
   const formik = useFormik({
     initialValues: {email : '', password: ''},
