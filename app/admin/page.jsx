@@ -1,21 +1,43 @@
 'use client'
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from '../../constants';
 import WithAuth from '../hoc/WithAuth';
-import { FaBox, FaChartLine, FaShoppingCart, FaUsers } from 'react-icons/fa';
-
 
 const Dashboard = () => {
+  const [stats, setStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Données de démonstration
-  const stats = [
-    { title: 'Produits', value: '124', icon: FaBox, change: '+12%', color: 'bg-blue-500' },
-    { title: 'Utilisateurs', value: '832', icon: FaUsers, change: '+5%', color: 'bg-green-500' },
-    { title: 'Commandes', value: '48', icon: FaShoppingCart, change: '+18%', color: 'bg-purple-500' },
-    { title: 'Revenus', value: '12.4M GNF', icon: FaChartLine, change: '+24%', color: 'bg-yellow-500' },
-  ];
-  
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          throw new Error('Token not found');
+        }
+// ${PROTOCOL_HTTP}://${HOST_IP}${PORT}/managers/dashboard/detailed-stats/
+        const response = await axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/managers/dashboard/detailed-stats/`, getAxiosConfig(token));
+        setStats(response.data);
+      } catch (err) {
+        console.error('Erreur:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchStats();
+  }, []);
 
-  
+  if (loading) {
+    return <div>Chargement...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Erreur: {error}</div>;
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>

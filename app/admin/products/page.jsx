@@ -261,8 +261,8 @@ const ProductsPage = () => {
         console.log('Données reçues:', data);
 
         // Vérifiez si data est un tableau
-        if (Array.isArray(data.products)) {
-          const transformedProducts = data.products.map(product => ({
+        if (Array.isArray(data.results)) {
+          const transformedProducts = data.results.map(product => ({
             id: product.id,
             image: product.images?.[0]?.image || '/placeholder.png',
             name: product.name,

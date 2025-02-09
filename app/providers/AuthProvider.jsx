@@ -55,25 +55,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-//   const login = async (email, password) => {
-//     try {
-//       const response = await axios.post(
-//         `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/login/`,
-//         { email, password }
-//       );
+  const login = async (email, password) => {
+    try {
+      const response = await axios.post(
+        `${PROTOCOL_HTTP}://${HOST_IP}${PORT}/accounts/login/`,
+        { email, password }
+      );
 
-//       const { access, user: userData } = response.data;
-//       localStorage.setItem('access_token', access);
-//       setUser(userData);
-//       toast.success('Connexion réussie');
-//       router.push('/admin');
-//       return true;
-//     } catch (error) {
-//       console.error('Erreur de connexion:', error);
-//       toast.error(error.response?.data?.message || 'Erreur de connexion');
-//       return false;
-//     }
-//   };
+      const { access, user: userData } = response.data;
+      console.log("response.data", response.data);
+      localStorage.setItem('access_token', access);
+      setUser(userData);
+      toast.success('Connexion réussie');
+      
+      router.push('/admin');
+      
+      return true;
+    } catch (error) {
+      console.error('Erreur de connexion:', error);
+      toast.error(error.response?.data?.message || 'Erreur de connexion');
+      return false;
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem('access_token');
@@ -86,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     initialized,
-    // login,
+    login,
     logout,
     checkAuth
   };
