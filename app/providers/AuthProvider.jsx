@@ -62,9 +62,9 @@ export const AuthProvider = ({ children }) => {
         { email, password }
       );
 
-      const { access, user: userData } = response.data;
+      const { access_token, user: userData } = response.data;
       console.log("response.data", response.data);
-      localStorage.setItem('access_token', access);
+      localStorage.setItem('access_token', access_token);
       setUser(userData);
       toast.success('Connexion réussie');
       
