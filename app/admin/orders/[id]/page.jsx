@@ -88,7 +88,7 @@ export default function OrderDetail() {
 
     const fetchOrderDetails = async () => {
       try {
-        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/orders/show/?number=${id}`,
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/orders/show/admin/?number=${id}`,
           {
             method: 'GET',
             headers: {

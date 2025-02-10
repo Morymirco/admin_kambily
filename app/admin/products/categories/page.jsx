@@ -287,6 +287,7 @@ const CategoriesPage = () => {
 
       // Créer le FormData
       const formData = new FormData();
+      console.log('is_main', newCategory.is_main);
       
       // Ajouter les champs requis
       formData.append('name', newCategory.name);
@@ -297,6 +298,8 @@ const CategoriesPage = () => {
         console.log("re",newCategory.parent_category);
       // Ajouter la catégorie parente si ce n'est pas une catégorie principale
       if (!newCategory.is_main && newCategory.parent_category) {
+      
+        
         const parentCategory = categories.find(cat => cat.id === Number(newCategory.parent_category));
 
         console.log(parentCategory);
@@ -313,7 +316,7 @@ const CategoriesPage = () => {
       }
 
       console.log("formData",formData);
-      const response = await fetch('https:/api.kambily.store/categories/create/', {
+      const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}//create/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
