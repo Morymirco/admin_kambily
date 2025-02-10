@@ -1,16 +1,15 @@
 'use client'
+import { useGoogleMapsScript } from '@/app/hooks/useGoogleMapsScript';
 import { useAuth } from '@/app/providers/AuthProvider';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
+import { GoogleMap, Marker } from '@react-google-maps/api';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FaBox, FaCheck, FaClock, FaTruck } from 'react-icons/fa';
-import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
-import { useRouter } from 'next/navigation';
-import { GoogleMap, Marker } from '@react-google-maps/api';
-import { useGoogleMapsScript } from '@/app/hooks/useGoogleMapsScript';
 
 const OrderDetailSkeleton = () => {
   

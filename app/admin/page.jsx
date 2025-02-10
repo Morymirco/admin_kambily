@@ -1,27 +1,32 @@
 'use client'
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { getAxiosConfig, HOST_IP, PORT, PROTOCOL_HTTP } from '../../constants';
-import WithAuth from '../hoc/WithAuth';
-
-const Dashboard = () => {
-  const [stats, setStats] = useState([]);
+import { useState, useEffect } from 'react';
+import { 
+  FaChartLine, FaChartBar, FaChartPie, 
+  FaShoppingCart, FaUsers, FaMoneyBillWave 
+} from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
+import { HOST_IP, PORT, PROTOCOL_HTTP } from '@/constants';
+import WithAuth from '@/app/hoc/WithAuth';
+const StatsPage = () => {
+  const [timeRange, setTimeRange] = useState('today');
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-          throw new Error('Token not found');
-        }
-// ${PROTOCOL_HTTP}://${HOST_IP}${PORT}/managers/dashboard/detailed-stats/
-        const response = await axios.get(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/managers/dashboard/detailed-stats/`, getAxiosConfig(token));
-        setStats(response.data);
-      } catch (err) {
-        console.error('Erreur:', err);
-        setError(err.message);
+        const response = await fetch(`${PROTOCOL_HTTP}://${HOST_IP}${PORT}/managers/dashboard/detailed-stats/`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        if (!response.ok) throw new Error('Erreur lors de la récupération des statistiques');
+        const data = await response.json();
+        console.log(data);
+        setStats(data);
+      } catch (error) {
+        console.error('Erreur:', error);
+        toast.error('Erreur lors de la récupération des statistiques');
       } finally {
         setLoading(false);
       }
@@ -31,65 +36,140 @@ const Dashboard = () => {
   }, []);
 
   if (loading) {
-    return <div>Chargement...</div>;
+    return <div className="text-center py-12">Chargement des statistiques...</div>;
   }
 
-  if (error) {
-    return <div className="text-red-500">Erreur: {error}</div>;
+  if (!stats) {
+    return <div className="text-center py-12 text-red-500">Impossible de charger les statistiques</div>;
   }
+
+  const currentStats = stats[timeRange];
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`${stat.color} p-3 rounded-lg`}>
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-sm font-medium text-green-600">{stat.change}</span>
-            </div>
-            <h3 className="text-gray-500 text-sm mb-1">{stat.title}</h3>
-            <p className="text-2xl font-bold">{stat.value}</p>
-          </div>
-        ))}
+    <div className="space-y-6">
+      {/* En-tête */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Tableau de Bord</h1>
+        <select 
+          value={timeRange}
+          onChange={(e) => setTimeRange(e.target.value)}
+          className="border rounded-lg px-4 py-2 focus:outline-none focus:border-[#048B9A]"
+        >
+          <option value="today">Aujourd'hui</option>
+          <option value="this_week">Cette semaine</option>
+          <option value="this_month">Ce mois</option>
+          <option value="this_year">Cette année</option>
+        </select>
       </div>
 
-      {/* Recent Activity & Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Orders */}
+      {/* Cartes statistiques */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Revenus */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-bold mb-4">Commandes récentes</h2>
-          <div className="space-y-4">
-            {/* Placeholder for orders list */}
-            <div className="animate-pulse">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center py-3 border-b">
-                  <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
-                  <div className="ml-4 flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2 mt-2"></div>
-                  </div>
-                </div>
-              ))}
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-blue-100 p-3 rounded-lg">
+              <FaMoneyBillWave className="w-6 h-6 text-blue-600" />
             </div>
+            {/* Ajoutez ici la logique pour le pourcentage si nécessaire */}
+          </div>
+          <h3 className="text-gray-500 text-sm mb-1">Revenus totaux</h3>
+          <p className="text-2xl font-bold">{currentStats.revenue.toLocaleString()} GNF</p>
+        </div>
+
+        {/* Commandes */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-purple-100 p-3 rounded-lg">
+              <FaShoppingCart className="w-6 h-6 text-purple-600" />
+            </div>
+            {/* Ajoutez ici la logique pour le pourcentage si nécessaire */}
+          </div>
+          <h3 className="text-gray-500 text-sm mb-1">Commandes</h3>
+          <p className="text-2xl font-bold">{currentStats.orders}</p>
+        </div>
+
+        {/* Clients */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-green-100 p-3 rounded-lg">
+              <FaUsers className="w-6 h-6 text-green-600" />
+            </div>
+            {/* Ajoutez ici la logique pour le pourcentage si nécessaire */}
+          </div>
+          <h3 className="text-gray-500 text-sm mb-1">Nouveaux clients</h3>
+          <p className="text-2xl font-bold">{currentStats.users}</p>
+        </div>
+
+        {/* Produits */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-yellow-100 p-3 rounded-lg">
+              <FaChartLine className="w-6 h-6 text-yellow-600" />
+            </div>
+            {/* Ajoutez ici la logique pour le pourcentage si nécessaire */}
+          </div>
+          <h3 className="text-gray-500 text-sm mb-1">Produits ajoutés</h3>
+          <p className="text-2xl font-bold">{currentStats.products}</p>
+        </div>
+      </div>
+
+      {/* Graphiques */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Graphique des ventes */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-bold mb-4">Évolution des ventes</h2>
+          <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+            <p className="text-gray-500">Graphique à venir</p>
           </div>
         </div>
 
-        {/* Analytics Chart */}
+        {/* Répartition des ventes */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-bold mb-4">Analyse des ventes</h2>
+          <h2 className="text-lg font-bold mb-4">Répartition par catégorie</h2>
           <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
-            {/* Placeholder for chart */}
-            <p className="text-gray-500">Graphique des ventes à venir</p>
+            <p className="text-gray-500">Graphique à venir</p>
           </div>
+        </div>
+      </div>
+
+      {/* Meilleurs produits */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h2 className="text-lg font-bold mb-4">Meilleurs produits</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Produit
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Ventes
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Revenus
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {/* {currentStats.topProducts.map((product, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {product.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {product.sales}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {product.revenue}
+                  </td>
+                </tr>
+              ))} */}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   );
 };
 
-export default WithAuth(Dashboard); 
+export default WithAuth(StatsPage); 

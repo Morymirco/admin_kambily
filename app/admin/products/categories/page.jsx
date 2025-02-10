@@ -210,7 +210,7 @@ const CategoriesPage = () => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) return;
 
     try {
-      const response = await fetch(`http://192.168.137.1:8001/categories/delete/${id}/`, {
+      const response = await fetch(`https://api.kambily.store/categories/delete/${id}/`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -313,7 +313,7 @@ const CategoriesPage = () => {
       }
 
       console.log("formData",formData);
-      const response = await fetch('http://192.168.137.1:8001/categories/create/', {
+      const response = await fetch('https:/api.kambily.store/categories/create/', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
